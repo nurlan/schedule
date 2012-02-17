@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<solver>
+	<environmentMode>DEBUG</environmentMode>
+	<solutionClass>kz.bee.drools.planner.schedule.solution.Schedule</solutionClass>
+	<planningEntityClass>kz.bee.drools.planner.schedule.domain.Lesson</planningEntityClass>
+	<scoreDrl>/scheduleScoreRules.drl</scoreDrl>
+	<scoreDefinition>
+		<scoreDefinitionType>SIMPLE</scoreDefinitionType>
+	</scoreDefinition>
+	<termination>
+		<scoreAttained>0</scoreAttained>
+	</termination>
+
+	<!-- <constructionHeuristic> -->
+	<!-- <constructionHeuristicType>FIRST_FIT</constructionHeuristicType> -->
+	<!-- </constructionHeuristic> -->
+
+	<localSearch>
+		<selector>
+			<selector>
+				<moveFactoryClass>kz.bee.drools.planner.schedule.solver.move.factory.PeriodChangeMoveFactory</moveFactoryClass>
+			</selector>
+			<selector>
+				<moveFactoryClass>kz.bee.drools.planner.schedule.solver.move.factory.RoomChangeMoveFactory</moveFactoryClass>
+			</selector>
+		</selector>
+		<acceptor>
+			<completeSolutionTabuSize>1500</completeSolutionTabuSize>
+		</acceptor>
+		<forager>
+			<!-- <pickEarlyType>NEVER</pickEarlyType> -->
+		</forager>
+	</localSearch>
+</solver>

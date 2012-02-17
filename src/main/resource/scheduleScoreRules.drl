@@ -1,0 +1,58 @@
+package kz.bee.drools.planner.schedule.solver;
+    dialect "java"
+
+import org.drools.planner.core.score.calculator.SimpleScoreCalculator;
+import org.drools.planner.core.score.constraint.UnweightedConstraintOccurrence;
+
+import kz.bee.drools.planner.schedule.domain.Lesson;
+
+global SimpleScoreCalculator scoreCalculator;
+
+//#
+// Two lessons in the same room at the same period.
+//#
+rule "twoLessonSameTimeSameRoom"
+	when
+		$lesson1 : Lesson($id : id, $period : period, $room : room)
+		$lesson2 : Lesson(id != $id, period == $period, room == $room)
+		//$lesson1 : Lesson($id : id)
+		//$lesson2 : Lesson(id != $id)
+	then
+		insertLogical(new UnweightedConstraintOccurrence("twoLessonSameTimeSameRoom", $lesson1, $lesson2));
+end
+
+/*/#
+// Two lessons in the same room at the same period with the same course.
+//#
+rule "twoLessonSameTimeSameRoomSameCourse"
+	when
+		$lesson1 : Lesson($id : id, $period : period, $room : room, $course : course)
+		$lesson2 : Lesson(id != $id, period == $period, room == $room, course == $course)
+	then
+		insertLogical(new UnweightedConstraintOccurrence("twoLessonSameTimeSameRoomSameCourse", $lesson1, $lesson2));
+end
+*/
+//#
+// Two lessons at the same time with a same teacher.
+//#
+rule "twoLessonSameTimeSameTeacher"
+	when
+		$lesson1 : Lesson($id : id, $period : period, $room : room, $course : course)
+		$lesson2 : Lesson(id != $id, period == $period, room != $room, course.teacher == $course.teacher)
+	then
+		insertLogical(new UnweightedConstraintOccurrence("twoLessonSameTimeSameTeacher", $lesson1, $lesson2));
+end
+
+// ############################################################################
+// Calculate score
+// ############################################################################
+
+rule "hardConstraintsBroken"
+    when
+        $occurrenceCount : Number() from accumulate(
+            $unweightedConstraintOccurrence : UnweightedConstraintOccurrence(),
+            count($unweightedConstraintOccurrence)
+        )
+    then
+        scoreCalculator.setScore(- $occurrenceCount.intValue());
+end
