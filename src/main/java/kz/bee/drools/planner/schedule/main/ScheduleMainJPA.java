@@ -112,6 +112,11 @@ public class ScheduleMainJPA {
 										.setParameter("ringGroup", em.find(RingGroup.class, 322828L))
 										.getResultList();
 		
+		List<RingOrder> ringOrder2 = em.createQuery("select r from RingOrder r where r.group = :ringGroup order by r.order asc")
+										.setParameter("ringGroup", em.find(RingGroup.class, 322829L))
+										.getResultList();
+		
+		ringOrder.addAll(ringOrder2);
 		
 		for(User u : kudosTeachers) {
 			Teacher t = new Teacher();
@@ -126,6 +131,8 @@ public class ScheduleMainJPA {
 			r.setNumber(l.getName());
 			roomList.add(r);
 		}
+		
+		System.out.println("Room size: " + roomList.size());
 		
 		for(kz.bee.kudos.ou.Class c : kudosClasses) {
 			Class clazz = new Class();
@@ -169,17 +176,19 @@ public class ScheduleMainJPA {
 		}
 		
 		j = 1;
+		int k = 0;
 		for( Course course : courseList ) {
 			for( int i = 0; i < course.getLessonCount(); i++ ) {
 				Lesson lesson = new Lesson();
 				lesson.setId(Long.valueOf(""+j++));
 				lesson.setCourse(course);
-				lesson.setPeriod(periodList.get((int) (Math.random() * periodList.size())));
-				lesson.setRoom(roomList.get((int) (Math.random() * roomList.size())));
+				lesson.setPeriod(periodList.get(k % periodList.size()));
+				lesson.setRoom(roomList.get((k / periodList.size()) % roomList.size()));
 				lessonList.add(lesson);
+				k++;
 			}
 		}
-		
+		System.out.println("Lessons size:" + j);
 		
 		em.getTransaction().commit();
 		
@@ -197,6 +206,8 @@ public class ScheduleMainJPA {
 		schedule.setDayList(dayList);
 		schedule.setTimeList(timeList);
 		schedule.setLessonList(lessonList);
+		
+		print(schedule);
 		
 		this.solver.setPlanningProblem((Solution)schedule);
 	}
@@ -221,7 +232,7 @@ public class ScheduleMainJPA {
 			}
 		}
 		
-		String htmlTable = "<html><head></head><body><table border='1'><tr><td>Period\\Rooms</td>";
+		String htmlTable = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><table border='1'><tr><td>Period\\Rooms</td>";
 		
 		for(int i = 0; i < roomList.size(); i++ ) {
 			htmlTable += "<td> Room[" + roomList.get(i).getNumber()+"]</td>";
