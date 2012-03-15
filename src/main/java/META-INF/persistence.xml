@@ -8,7 +8,21 @@
 	<persistence-unit name="slrs" transaction-type="RESOURCE_LOCAL">
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 		<class>kz.bee.wx.security.Group</class>
+		<class>kz.bee.wx.security.Membership</class>
 		<class>kz.bee.wx.core.Properties</class>
+		<class>kz.bee.kudos.lesson.RingGroup</class>
+		<class>kz.bee.kudos.lesson.RingOrder</class>
+		<class>kz.bee.kudos.ou.Location</class>
+		<class>kz.bee.kudos.ou.School</class>
+		<class>kz.bee.wx.security.Group</class>
+		<class>kz.bee.wx.security.Role</class>
+		<class>kz.bee.wx.security.User</class>
+		<class>kz.bee.kudos.ou.Region</class>
+		<class>kz.bee.kudos.ou.Class</class>
+		<class>kz.bee.kudos.course.Course</class>
+		<class>kz.bee.kudos.period.Period</class>
+		<class>kz.bee.kudos.course.Syllabus</class>
+		
 		<properties>
 			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect" />
 			<property name="hibernate.hbm2ddl.auto" value="validate" />

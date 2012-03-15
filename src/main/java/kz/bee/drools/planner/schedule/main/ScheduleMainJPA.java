@@ -20,6 +20,13 @@ import kz.bee.drools.planner.schedule.domain.Room;
 import kz.bee.drools.planner.schedule.domain.Teacher;
 import kz.bee.drools.planner.schedule.domain.Time;
 import kz.bee.drools.planner.schedule.solution.Schedule;
+import kz.bee.kudos.lesson.RingGroup;
+import kz.bee.kudos.lesson.RingOrder;
+import kz.bee.kudos.ou.Location;
+import kz.bee.kudos.ou.School;
+import kz.bee.wx.security.Group;
+import kz.bee.wx.security.Role;
+import kz.bee.wx.security.User;
 
 import org.apache.log4j.xml.DOMConfigurator;
 import org.drools.planner.config.XmlSolverConfigurer;
@@ -46,7 +53,7 @@ public class ScheduleMainJPA {
 		this.solver.addEventListener( new SolverEventListener() {
 		    public void bestSolutionChanged(BestSolutionChangedEvent event) {
 		        Schedule schedule = (Schedule) solver.getBestSolution();
-		        
+		        System.out.println( "Score: " + schedule.getScore() + ", Time: " + ScheduleMainJPA.this.solver.getTimeMillisSpend() );
 		        //print(schedule);
 		    }
 		
@@ -65,56 +72,89 @@ public class ScheduleMainJPA {
 	}
 	
 	private void setPlanningProblem() {
-		List<Course> courseList = new ArrayList<Course>();
-		List<Class> clazzList = new ArrayList<Class>();
-		List<Teacher> teacherList = new ArrayList<Teacher>();
-		List<Room> roomList = new ArrayList<Room>();
-		List<Period> periodList = new ArrayList<Period>();
+		List<Course> courseList = new ArrayList<Course>(); //4
+		List<Class> clazzList = new ArrayList<Class>(); //3
+		List<Teacher> teacherList = new ArrayList<Teacher>(); //1
+		List<Room> roomList = new ArrayList<Room>(); //2
+		List<Period> periodList = new ArrayList<Period>();//5
 		List<Day> dayList = new ArrayList<Day>();
-		List<Time> timeList = new ArrayList<Time>();
+		List<Time> timeList = new ArrayList<Time>();//5.1
 		List<Lesson> lessonList = new ArrayList<Lesson>();
-		List<Long> studentList;
+		List<Long> studentList = new ArrayList<Long>();
 		
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory("slrs");
 		EntityManager em = emf.createEntityManager();
 		
 		em.getTransaction().begin();
 		
-		for( int i = 1; i <= 3; i++ ) {
+		
+		List<User> kudosTeachers = em.createQuery("select m.user from Membership m where m.group = :group and m.role = :role")
+									.setParameter("group", em.find(Group.class, "BEE-Z-B-S48"))
+									.setParameter("role", em.find(Role.class, "TEACHER"))
+									.getResultList();
+		
+		List<Location> kudosRooms = em.createQuery("select l from Location l where l.school = :school")
+										.setParameter("school", em.find(School.class, "BEE-Z-B-S48"))
+										.getResultList();
+		
+		//282660
+		List<kz.bee.kudos.ou.Class> kudosClasses = em.createQuery("select c from kz.bee.kudos.ou.Class c where c.parent.parent = :group and c.period = :period")
+													.setParameter("group", em.find(Group.class, "BEE-Z-B-S48"))
+													.setParameter("period", em.find(kz.bee.kudos.period.Period.class, 282660L))
+													.getResultList();
+		
+		List<kz.bee.kudos.course.Course> kudosCourses = em.createQuery("select c from kz.bee.kudos.course.Course c where c.period = :period and c.clazz.parent.parent = :school")
+														.setParameter("period", em.find(kz.bee.kudos.period.Period.class, 282660L))
+														.setParameter("school", em.find(Group.class, "BEE-Z-B-S48"))
+														.getResultList();
+		
+		List<RingOrder> ringOrder = em.createQuery("select r from RingOrder r where r.group = :ringGroup order by r.order asc")
+										.setParameter("ringGroup", em.find(RingGroup.class, 322828L))
+										.getResultList();
+		
+		
+		for(User u : kudosTeachers) {
+			Teacher t = new Teacher();
+			t.setId(u.getName());
+			t.setName(u.getLastname()+" "+u.getFirstname());
+			teacherList.add(t);
+		}
+		
+		for(Location l : kudosRooms) {
+			Room r = new Room();
+			r.setId(Long.parseLong(l.getName()));
+			r.setNumber(l.getName());
+			roomList.add(r);
+		}
+		
+		for(kz.bee.kudos.ou.Class c : kudosClasses) {
+			Class clazz = new Class();
+			clazz.setId(c.getId());
+			clazz.setStudentList(studentList);
+			clazzList.add(clazz);
+		}
+		
+		for(kz.bee.kudos.course.Course c : kudosCourses) {
+			Course course = new Course();
+			course.setId(c.getId());
+			course.setLessonCount(c.getWeeklyHours().intValue());
+			course.setClazz(getClazz(clazzList,c.getClazz().getId()));
+			course.setTeacher(getTeacher(teacherList, c.getTeacher().getName()));
+			courseList.add(course);
+		}
+		
+		for(RingOrder r : ringOrder) {
 			Time t = new Time();
-			t.setId(Long.valueOf(""+i));
-			t.setValue(i);
-			
-			Day d = new Day();
-			d.setId(Long.valueOf(""+i));
-			d.setValue(i);
-			
-			studentList = new ArrayList<Long>();
-			
-			for(int j = 1; j <= 20; j++) {
-				studentList.add(new Long((i-1)*20+j));
-			}
-			
-			Class c = new Class();
-			c.setId(Long.valueOf(""+i));
-			c.setStudentList(studentList);
-			
-			if( i < 3 ) {
-				Room r = new Room();
-				r.setId(Long.valueOf(""+i));
-				r.setNumber("R"+i);
-				
-				Teacher teacher = new Teacher();
-				teacher.setId(Long.valueOf(""+i));
-				teacher.setName("Professor #"+i);
-				
-				roomList.add(r);
-				teacherList.add(teacher);
-			}
-			
+			t.setId(r.getId());
+			t.setValue(r.getOrder());
 			timeList.add(t);
+		}
+		
+		for(int i = 1; i < 7; i++ ) {
+			Day d = new Day();
+			d.setId(Long.parseLong(""+i));
+			d.setValue(i);
 			dayList.add(d);
-			clazzList.add(c);
 		}
 		
 		int j = 1;
@@ -128,27 +168,18 @@ public class ScheduleMainJPA {
 			}
 		}
 		
-		for( int i = 1; i <= 5; i++ ){
-			Course course = new Course();
-			course.setId(Long.valueOf(""+i));
-			course.setLessonCount(2);
-			course.setTeacher(teacherList.get(i % 2));
-			course.setClazz(clazzList.get((new Random()).nextInt(3)));
-			
-			courseList.add(course);
-		}
-		
 		j = 1;
 		for( Course course : courseList ) {
 			for( int i = 0; i < course.getLessonCount(); i++ ) {
 				Lesson lesson = new Lesson();
 				lesson.setId(Long.valueOf(""+j++));
 				lesson.setCourse(course);
-				lesson.setPeriod(periodList.get(0));
-				lesson.setRoom(roomList.get(0));
+				lesson.setPeriod(periodList.get((int) (Math.random() * periodList.size())));
+				lesson.setRoom(roomList.get((int) (Math.random() * roomList.size())));
 				lessonList.add(lesson);
 			}
 		}
+		
 		
 		em.getTransaction().commit();
 		
@@ -226,6 +257,26 @@ public class ScheduleMainJPA {
 		System.out.println( "Score: " + schedule.getScore() + ", Time: " + this.solver.getTimeMillisSpend() );
 		System.out.println(htmlTable);
 		
+	}
+	
+	public Teacher getTeacher(List<Teacher> teachers, String id) {
+		for(Teacher t : teachers) {
+			if(t.getId().equals(id)) {
+				return t;
+			}
+		}
+		
+		return null;
+	}
+	
+	public Class getClazz(List<Class> classes, Long id) {
+		for(Class c : classes) {
+			if(c.getId() == id) {
+				return c;
+			}
+		}
+		
+		return null;
 	}
 	
 	public static void main(String [] args) {

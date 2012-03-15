@@ -10,14 +10,14 @@ import org.apache.commons.lang.builder.CompareToBuilder;
  */
 public class Teacher implements Serializable, Comparable<Teacher> {
 
-	private Long id;
+	private String id;
 	private String name;
 	
-	public Long getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 

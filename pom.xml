@@ -57,7 +57,7 @@
 		<dependency>
 			<groupId>kz.bee.kudos</groupId>
 			<artifactId>kudos-core-entities</artifactId>
-			<version>0.1.8</version>
+			<version>0.1.10</version>
 		</dependency>
 
 		<!-- Persistence -->
