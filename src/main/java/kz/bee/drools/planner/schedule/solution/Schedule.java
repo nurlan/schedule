@@ -26,7 +26,7 @@ import org.drools.planner.core.solution.Solution;
 public class Schedule implements Solution<SimpleScore> {
 
 	private Long id;
-	private List<Course> courseList;
+	//private List<Course> courseList;
 	private List<Class> clazzList;
 	private List<Teacher> teacherList;
 	private List<Room> roomList;
@@ -46,13 +46,13 @@ public class Schedule implements Solution<SimpleScore> {
 		this.id = id;
 	}
 
-	public List<Course> getCourseList() {
-		return courseList;
-	}
-
-	public void setCourseList(List<Course> courseList) {
-		this.courseList = courseList;
-	}
+//	public List<Course> getCourseList() {
+//		return courseList;
+//	}
+//
+//	public void setCourseList(List<Course> courseList) {
+//		this.courseList = courseList;
+//	}
 
 	public List<Class> getClazzList() {
 		return clazzList;
@@ -122,7 +122,7 @@ public class Schedule implements Solution<SimpleScore> {
 	public Collection<? extends Object> getProblemFacts() {
 		List<Object> facts =  new ArrayList<Object>();
 		
-		facts.addAll(courseList);
+		//facts.addAll(courseList);
 		facts.addAll(clazzList);
 		facts.addAll(teacherList);
 		facts.addAll(roomList);
@@ -140,7 +140,7 @@ public class Schedule implements Solution<SimpleScore> {
 		Schedule clone = new Schedule();
 		
 		clone.id = id;
-		clone.courseList = courseList; 
+		//clone.courseList = courseList; 
 		clone.clazzList = clazzList;
 		clone.teacherList = teacherList;
 		clone.roomList = roomList;

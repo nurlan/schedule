@@ -80,7 +80,7 @@ public class ScheduleMainJPA {
 		List<Day> dayList = new ArrayList<Day>();
 		List<Time> timeList = new ArrayList<Time>();//5.1
 		List<Lesson> lessonList = new ArrayList<Lesson>();
-		List<Long> studentList = new ArrayList<Long>();
+//		List<Long> studentList = new ArrayList<Long>();
 		
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory("slrs");
 		EntityManager em = emf.createEntityManager();
@@ -137,7 +137,7 @@ public class ScheduleMainJPA {
 		for(kz.bee.kudos.ou.Class c : kudosClasses) {
 			Class clazz = new Class();
 			clazz.setId(c.getId());
-			clazz.setStudentList(studentList);
+//			clazz.setStudentList(studentList);
 			clazzList.add(clazz);
 		}
 		
@@ -181,7 +181,9 @@ public class ScheduleMainJPA {
 			for( int i = 0; i < course.getLessonCount(); i++ ) {
 				Lesson lesson = new Lesson();
 				lesson.setId(Long.valueOf(""+j++));
-				lesson.setCourse(course);
+				lesson.setCourseId(course.getId());
+				lesson.setTeacherId(course.getTeacher().getId());
+				lesson.setClassId(course.getClazz().getId());
 				lesson.setPeriod(periodList.get(k % periodList.size()));
 				lesson.setRoom(roomList.get((k / periodList.size()) % roomList.size()));
 				lessonList.add(lesson);
@@ -198,7 +200,7 @@ public class ScheduleMainJPA {
 		
 		Schedule schedule = new Schedule();
 		schedule.setId(1L);
-		schedule.setCourseList(courseList);
+//		schedule.setCourseList(courseList);
 		schedule.setClazzList(clazzList);
 		schedule.setTeacherList(teacherList);
 		schedule.setRoomList(roomList);
@@ -226,7 +228,7 @@ public class ScheduleMainJPA {
 				for( Lesson l : lessonList ) {
 					if( periodList.get(i) == l.getPeriod() && roomList.get(j) == l.getRoom() ) {
 						if(table[i][j] == null) table[i][j] = "";
-						table[i][j] += "Course [#" + l.getCourse().getId() + "]<br/>Teacher[" + l.getCourse().getTeacher().getName() + "]<br/>Class[" + l.getCourse().getClazz().getId()+"];";
+						table[i][j] += "Course [#" + l.getCourseId() + "]<br/>Teacher[" + l.getTeacherId() + "]<br/>Class[" + l.getClassId()+"];";
 					}
 				}
 			}

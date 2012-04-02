@@ -12,7 +12,7 @@ import org.apache.commons.lang.builder.CompareToBuilder;
 public class Class implements Serializable, Comparable<Class> {
 
 	private Long id;
-	private List<Long> studentList;
+//	private List<Long> studentList;
 	
 	public Long getId() {
 		return id;
@@ -21,22 +21,22 @@ public class Class implements Serializable, Comparable<Class> {
 		this.id = id;
 	}
 	
-	public List<Long> getStudentList() {
-		return studentList;
-	}
-	public void setStudentList(List<Long> studentList) {
-		this.studentList = studentList;
-	}
+//	public List<Long> getStudentList() {
+//		return studentList;
+//	}
+//	public void setStudentList(List<Long> studentList) {
+//		this.studentList = studentList;
+//	}
 	
 	@Override
 	public String toString() {
-		return "Class [id=" + id + ", studentList=" + studentList + "]";
+		return "Class [id=" + id + "]";//, studentList=" + studentList + "]";
 	}
 	
 	public int compareTo(Class other) {
 		return new CompareToBuilder()
 			.append(id, other.id)
-			.append(studentList, other.studentList)
+//			.append(studentList, other.studentList)
 			.toComparison();
 	}
 	
