@@ -14,7 +14,7 @@ public class Course implements Serializable, Comparable<Course> {
 	private int lessonCount;
 	private Teacher teacher;
 	private Class clazz;
-	
+	private Room room;
 	
 	public Long getId() {
 		return id;
@@ -54,12 +54,23 @@ public class Course implements Serializable, Comparable<Course> {
 	public void setClazz(Class clazz) {
 		this.clazz = clazz;
 	}
+	
+
+	public Room getRoom() {
+		return room;
+	}
+
+
+	public void setRoom(Room room) {
+		this.room = room;
+	}
 
 
 	@Override
 	public String toString() {
 		return "Course [id=" + id + ", lessonCount=" + lessonCount
-				+ ", teacher=" + teacher + ", clazz=" + clazz + "]";
+				+ ", teacher=" + teacher + ", clazz=" + clazz + ", room="
+				+ room + "]";
 	}
 
 
@@ -69,6 +80,7 @@ public class Course implements Serializable, Comparable<Course> {
 			.append(lessonCount, other.lessonCount)
 			.append(teacher, other.teacher)
 			.append(clazz, other.clazz)
+			.append(room, other.room)
 			.toComparison();
 	}
 	

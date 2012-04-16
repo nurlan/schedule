@@ -17,9 +17,10 @@ import org.drools.planner.api.domain.variable.ValueRangeFromSolutionProperty;
 public class Lesson implements Serializable, Comparable<Lesson>{
 
 	private Long id;
-	private Long courseId;
-	private String teacherId;
-	private Long classId;
+//	private Long courseId;
+//	private String teacherId;
+//	private Long classId;
+	private Course course;
 	
 	private Period period;
 	private Room room;
@@ -33,35 +34,43 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 		this.id = id;
 	}
 
-	public Long getCourseId() {
-		return courseId;
+//	public Long getCourseId() {
+//		return courseId;
+//	}
+//
+//
+//	public void setCourseId(Long courseId) {
+//		this.courseId = courseId;
+//	}
+//
+//	
+//	public String getTeacherId() {
+//		return teacherId;
+//	}
+//
+//
+//	public void setTeacherId(String teacherId) {
+//		this.teacherId = teacherId;
+//	}
+//
+//
+//	public Long getClassId() {
+//		return classId;
+//	}
+//
+//
+//	public void setClassId(Long classId) {
+//		this.classId = classId;
+//	}
+
+	public Course getCourse() {
+		return course;
 	}
 
 
-	public void setCourseId(Long courseId) {
-		this.courseId = courseId;
+	public void setCourse(Course course) {
+		this.course = course;
 	}
-
-	
-	public String getTeacherId() {
-		return teacherId;
-	}
-
-
-	public void setTeacherId(String teacherId) {
-		this.teacherId = teacherId;
-	}
-
-
-	public Long getClassId() {
-		return classId;
-	}
-
-
-	public void setClassId(Long classId) {
-		this.classId = classId;
-	}
-
 
 	@PlanningVariable
 	@ValueRangeFromSolutionProperty(propertyName="periodList")
@@ -91,9 +100,10 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 		Lesson lesson = new Lesson();
 		
 		lesson.setId(id);
-		lesson.setCourseId(courseId);
-		lesson.setTeacherId(teacherId);
-		lesson.setClassId(classId);
+//		lesson.setCourseId(courseId);
+//		lesson.setTeacherId(teacherId);
+//		lesson.setClassId(classId);
+		lesson.setCourse(course);
 		lesson.setPeriod(period);
 		lesson.setRoom(room);
 		
@@ -103,9 +113,10 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 	public int compareTo(Lesson other) {
 		return new CompareToBuilder()
 			.append(id, other.id)
-			.append(courseId, other.courseId)
-			.append(teacherId, other.teacherId)
-			.append(classId, other.classId)
+//			.append(courseId, other.courseId)
+//			.append(teacherId, other.teacherId)
+//			.append(classId, other.classId)
+			.append(course, other.course)
 			.append(period, other.period)
 			.append(room, other.room)
 			.toComparison();
@@ -124,9 +135,10 @@ public class Lesson implements Serializable, Comparable<Lesson>{
         	Lesson other = (Lesson) o;
             return new EqualsBuilder()
                     .append(id, other.id)
-                    .append(courseId, other.courseId)
-                    .append(teacherId, other.teacherId)
-                    .append(classId, other.classId)
+//                    .append(courseId, other.courseId)
+//                    .append(teacherId, other.teacherId)
+//                    .append(classId, other.classId)
+                    .append(course, other.course)
 					.append(period, other.period)
 					.append(room, other.room)
                     .isEquals();
@@ -143,7 +155,8 @@ public class Lesson implements Serializable, Comparable<Lesson>{
     public int solutionHashCode() {
         return new HashCodeBuilder()
                 .append(id)
-                .append(courseId)
+//                .append(courseId)
+                .append(course)
 				.append(period)
 				.append(room)
                 .toHashCode();
@@ -152,7 +165,7 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 	
     @Override
 	public String toString() {
-		return "Lesson [id=" + id + ", courseId=" + courseId + ", period=" + period
+		return "Lesson [id=" + id + ", course=" + course + ", period=" + period
 				+ ", room=" + room + "]";
 	}	
 }

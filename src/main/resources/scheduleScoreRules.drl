@@ -37,8 +37,8 @@ end
 //#
 rule "twoLessonSameTimeSameTeacher"
 	when
-		$lesson1 : Lesson($id : id, $period : period, $room : room, $teacherId : teacherId)
-		$lesson2 : Lesson(id != $id, period == $period, room != $room, teacherId == $teacherId)
+		$lesson1 : Lesson($id : id, $period : period, $room : room, $teacher : course.teacher)
+		$lesson2 : Lesson(id != $id, period == $period, room != $room, course.teacher == $teacher)
 	then
 		insertLogical(new UnweightedConstraintOccurrence("twoLessonSameTimeSameTeacher", $lesson1, $lesson2));
 end

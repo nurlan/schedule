@@ -12,6 +12,7 @@ public class Room implements Serializable, Comparable<Room> {
 
 	private Long id;
 	private String number;
+	private int type;
 	
 	public Long getId() {
 		return id;
@@ -32,10 +33,19 @@ public class Room implements Serializable, Comparable<Room> {
 		this.number = number;
 	}
 
+	public int getType() {
+		return type;
+	}
 
+
+	public void setType(int type) {
+		this.type = type;
+	}
+
+	
 	@Override
 	public String toString() {
-		return "Room [id=" + id + ", number=" + number + "]";
+		return "Room [id=" + id + ", number=" + number + ", type=" + type + "]";
 	}
 
 
@@ -43,6 +53,7 @@ public class Room implements Serializable, Comparable<Room> {
 		return new CompareToBuilder()
 			.append(id, other.id)
 			.append(number, other.number)
+			.append(type, other.type)
 			.toComparison();
 	}
 	

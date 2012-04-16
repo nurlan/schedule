@@ -11,9 +11,9 @@
 		<scoreAttained>0</scoreAttained>
 	</termination>
 
-	<!-- <constructionHeuristic> -->
-	<!-- <constructionHeuristicType>FIRST_FIT</constructionHeuristicType> -->
-	<!-- </constructionHeuristic> -->
+	<constructionHeuristic>
+	<constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
+	</constructionHeuristic>
 
 	<localSearch>
 		<selector>

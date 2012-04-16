@@ -98,25 +98,29 @@ public class ScheduleMainJPA {
 										.getResultList();
 		
 		//282660
-		List<kz.bee.kudos.ou.Class> kudosClasses = em.createQuery("select c from kz.bee.kudos.ou.Class c where c.parent.parent = :group and c.period = :period")
+		List<kz.bee.kudos.ou.Class> kudosClasses = em.createQuery("select c from kz.bee.kudos.ou.Class c where c.parent.parent = :group and c.period = :period and c.level in (5,6,7,8)")
 													.setParameter("group", em.find(Group.class, "BEE-Z-B-S48"))
 													.setParameter("period", em.find(kz.bee.kudos.period.Period.class, 282660L))
 													.getResultList();
 		
-		List<kz.bee.kudos.course.Course> kudosCourses = em.createQuery("select c from kz.bee.kudos.course.Course c where c.period = :period and c.clazz.parent.parent = :school")
-														.setParameter("period", em.find(kz.bee.kudos.period.Period.class, 282660L))
-														.setParameter("school", em.find(Group.class, "BEE-Z-B-S48"))
+//		List<kz.bee.kudos.course.Course> kudosCourses = em.createQuery("select c from kz.bee.kudos.course.Course c where c.period = :period and c.clazz.parent.parent = :school")
+//														.setParameter("period", em.find(kz.bee.kudos.period.Period.class, 282660L))
+//														.setParameter("school", em.find(Group.class, "BEE-Z-B-S48"))
+//														.getResultList();
+		
+		List<kz.bee.kudos.course.Course> kudosCourses = em.createQuery("select c from kz.bee.kudos.course.Course c where c.clazz in (:kudosClasses)")
+														.setParameter("kudosClasses", kudosClasses)
 														.getResultList();
 		
 		List<RingOrder> ringOrder = em.createQuery("select r from RingOrder r where r.group = :ringGroup order by r.order asc")
 										.setParameter("ringGroup", em.find(RingGroup.class, 322828L))
 										.getResultList();
 		
-		List<RingOrder> ringOrder2 = em.createQuery("select r from RingOrder r where r.group = :ringGroup order by r.order asc")
-										.setParameter("ringGroup", em.find(RingGroup.class, 322829L))
-										.getResultList();
+//		List<RingOrder> ringOrder2 = em.createQuery("select r from RingOrder r where r.group = :ringGroup order by r.order asc")
+//										.setParameter("ringGroup", em.find(RingGroup.class, 322829L))
+//										.getResultList();
 		
-		ringOrder.addAll(ringOrder2);
+//		ringOrder.addAll(ringOrder2);
 		
 		for(User u : kudosTeachers) {
 			Teacher t = new Teacher();
@@ -131,6 +135,7 @@ public class ScheduleMainJPA {
 			r.setNumber(l.getName());
 			roomList.add(r);
 		}
+//		roomList = roomList.subList(0, roomList.size()/2);
 		
 		System.out.println("Room size: " + roomList.size());
 		
@@ -138,6 +143,7 @@ public class ScheduleMainJPA {
 			Class clazz = new Class();
 			clazz.setId(c.getId());
 //			clazz.setStudentList(studentList);
+			clazz.seteLevel(c.getLevel().intValue());
 			clazzList.add(clazz);
 		}
 		
@@ -181,9 +187,10 @@ public class ScheduleMainJPA {
 			for( int i = 0; i < course.getLessonCount(); i++ ) {
 				Lesson lesson = new Lesson();
 				lesson.setId(Long.valueOf(""+j++));
-				lesson.setCourseId(course.getId());
-				lesson.setTeacherId(course.getTeacher().getId());
-				lesson.setClassId(course.getClazz().getId());
+//				lesson.setCourseId(course.getId());
+//				lesson.setTeacherId(course.getTeacher().getId());
+//				lesson.setClassId(course.getClazz().getId());
+				lesson.setCourse(course);
 				lesson.setPeriod(periodList.get(k % periodList.size()));
 				lesson.setRoom(roomList.get((k / periodList.size()) % roomList.size()));
 				lessonList.add(lesson);
@@ -200,7 +207,7 @@ public class ScheduleMainJPA {
 		
 		Schedule schedule = new Schedule();
 		schedule.setId(1L);
-//		schedule.setCourseList(courseList);
+		schedule.setCourseList(courseList);
 		schedule.setClazzList(clazzList);
 		schedule.setTeacherList(teacherList);
 		schedule.setRoomList(roomList);
@@ -228,7 +235,8 @@ public class ScheduleMainJPA {
 				for( Lesson l : lessonList ) {
 					if( periodList.get(i) == l.getPeriod() && roomList.get(j) == l.getRoom() ) {
 						if(table[i][j] == null) table[i][j] = "";
-						table[i][j] += "Course [#" + l.getCourseId() + "]<br/>Teacher[" + l.getTeacherId() + "]<br/>Class[" + l.getClassId()+"];";
+						table[i][j] += "Course [#" + l.getCourse().getId() + "]<br/>Teacher[" + l.getCourse().getTeacher().getId() + "]<br/>Class[" 
+													+ l.getCourse().getClazz().getId()+", level=" + l.getCourse().getClazz().geteLevel() + "];";
 					}
 				}
 			}
