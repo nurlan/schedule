@@ -36,12 +36,16 @@ public class RoomChangeMove implements Move, TabuPropertyEnabled{
 		return new RoomChangeMove(lesson, lesson.getRoom());
 	}
 
-	public void doMove(WorkingMemory workingMemory) {
-		FactHandle lessonHandle = workingMemory.getFactHandle(lesson);
-		lesson.setRoom(toRoom);
-		workingMemory.update(lessonHandle, lesson);
-	}
+//	public void doMove(WorkingMemory workingMemory) {
+//		FactHandle lessonHandle = workingMemory.getFactHandle(lesson);
+//		lesson.setRoom(toRoom);
+//		workingMemory.update(lessonHandle, lesson);
+//	}
 
+	public void doMove(WorkingMemory workingMemory) {
+        CurriculumCourseMoveHelper.moveRoom(workingMemory, lesson, toRoom);
+    }
+	
 	public boolean equals(Object o) {
         if (this == o) {
             return true;

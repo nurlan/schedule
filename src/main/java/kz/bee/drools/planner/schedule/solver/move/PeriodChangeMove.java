@@ -36,11 +36,14 @@ public class PeriodChangeMove implements Move, TabuPropertyEnabled{
 		return new PeriodChangeMove(lesson, lesson.getPeriod());
 	}
 
+//	public void doMove(WorkingMemory workingMemory) {
+//		FactHandle lessonHandle = workingMemory.getFactHandle(lesson);
+//		lesson.setPeriod(toPeriod);
+//		workingMemory.update(lessonHandle, lesson);
+//	}
 	public void doMove(WorkingMemory workingMemory) {
-		FactHandle lessonHandle = workingMemory.getFactHandle(lesson);
-		lesson.setPeriod(toPeriod);
-		workingMemory.update(lessonHandle, lesson);
-	}
+        CurriculumCourseMoveHelper.movePeriod(workingMemory, lesson, toPeriod);
+    }
 
 	public boolean equals(Object o) {
         if (this == o) {

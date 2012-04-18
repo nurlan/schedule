@@ -2,6 +2,11 @@ package kz.bee.drools.planner.schedule.domain;
 
 import java.io.Serializable;
 
+import kz.bee.drools.planner.schedule.domain.solver.LessonDifficultyWeightFactory;
+import kz.bee.drools.planner.schedule.domain.solver.PeriodStrengthWeightFactory;
+import kz.bee.drools.planner.schedule.domain.solver.PeriodStrengthWeightFactory.PeriodStrengthWeight;
+import kz.bee.drools.planner.schedule.domain.solver.RoomStrengthWeightFactory;
+
 import org.apache.commons.lang.builder.CompareToBuilder;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
@@ -13,7 +18,7 @@ import org.drools.planner.api.domain.variable.ValueRangeFromSolutionProperty;
  * @author Nurlan Rakhimzhanov
  * 
  */
-@PlanningEntity
+@PlanningEntity(difficultyWeightFactoryClass=LessonDifficultyWeightFactory.class)
 public class Lesson implements Serializable, Comparable<Lesson>{
 
 	private Long id;
@@ -21,6 +26,7 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 //	private String teacherId;
 //	private Long classId;
 	private Course course;
+	private boolean pinned;
 	
 	private Period period;
 	private Room room;
@@ -28,7 +34,6 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 	public Long getId() {
 		return id;
 	}
-
 
 	public void setId(Long id) {
 		this.id = id;
@@ -72,7 +77,7 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 		this.course = course;
 	}
 
-	@PlanningVariable
+	@PlanningVariable(strengthWeightFactoryClass=PeriodStrengthWeightFactory.class)
 	@ValueRangeFromSolutionProperty(propertyName="periodList")
 	public Period getPeriod() {
 		return period;
@@ -84,7 +89,7 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 	}
 
 
-	@PlanningVariable
+	@PlanningVariable(strengthWeightFactoryClass=RoomStrengthWeightFactory.class)
 	@ValueRangeFromSolutionProperty(propertyName="roomList")
 	public Room getRoom() {
 		return room;
@@ -95,6 +100,14 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 		this.room = room;
 	}
 
+
+	public boolean isPinned() {
+		return pinned;
+	}
+	
+	public void setPinned(boolean pinned) {
+		this.pinned = pinned;
+	}
 
 	public Lesson clone() {
 		Lesson lesson = new Lesson();

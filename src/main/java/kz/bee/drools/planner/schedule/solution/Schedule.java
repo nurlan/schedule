@@ -13,6 +13,7 @@ import kz.bee.drools.planner.schedule.domain.Period;
 import kz.bee.drools.planner.schedule.domain.Room;
 import kz.bee.drools.planner.schedule.domain.Teacher;
 import kz.bee.drools.planner.schedule.domain.Time;
+import kz.bee.drools.planner.schedule.domain.UnavailablePeriodConstraint;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.drools.planner.api.domain.solution.PlanningEntityCollectionProperty;
@@ -33,6 +34,7 @@ public class Schedule implements Solution<SimpleScore> {
 	private List<Period> periodList;
 	private List<Day> dayList;
 	private List<Time> timeList;
+	private List<UnavailablePeriodConstraint> unavailablePeriodConstraintList;
 	
 	private List<Lesson> lessonList;
 	
@@ -101,6 +103,16 @@ public class Schedule implements Solution<SimpleScore> {
 	public void setTimeList(List<Time> timeList) {
 		this.timeList = timeList;
 	}
+	
+
+	public List<UnavailablePeriodConstraint> getUnavailablePeriodConstraintList() {
+		return unavailablePeriodConstraintList;
+	}
+
+	public void setUnavailablePeriodConstraintList(
+			List<UnavailablePeriodConstraint> unavailablePeriodConstraintList) {
+		this.unavailablePeriodConstraintList = unavailablePeriodConstraintList;
+	}
 
 	@PlanningEntityCollectionProperty
 	public List<Lesson> getLessonList() {
@@ -122,13 +134,14 @@ public class Schedule implements Solution<SimpleScore> {
 	public Collection<? extends Object> getProblemFacts() {
 		List<Object> facts =  new ArrayList<Object>();
 		
-		//facts.addAll(courseList);
+		facts.addAll(courseList);
 		facts.addAll(clazzList);
 		facts.addAll(teacherList);
 		facts.addAll(roomList);
 		facts.addAll(periodList);
 		facts.addAll(dayList);
 		facts.addAll(timeList);
+		facts.addAll(unavailablePeriodConstraintList);
 		
 		return facts;
 	}
@@ -140,13 +153,14 @@ public class Schedule implements Solution<SimpleScore> {
 		Schedule clone = new Schedule();
 		
 		clone.id = id;
-		//clone.courseList = courseList; 
+		clone.courseList = courseList; 
 		clone.clazzList = clazzList;
 		clone.teacherList = teacherList;
 		clone.roomList = roomList;
 		clone.periodList = periodList;
 		clone.dayList = dayList;
 		clone.timeList = timeList;
+		clone.unavailablePeriodConstraintList = unavailablePeriodConstraintList;
 		
 		List<Lesson> clonedLessonList = new ArrayList<Lesson>(lessonList.size());
 		for( Lesson l : lessonList ) {

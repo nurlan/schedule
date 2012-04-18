@@ -4,7 +4,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import javax.persistence.EntityManager;
@@ -19,6 +23,7 @@ import kz.bee.drools.planner.schedule.domain.Period;
 import kz.bee.drools.planner.schedule.domain.Room;
 import kz.bee.drools.planner.schedule.domain.Teacher;
 import kz.bee.drools.planner.schedule.domain.Time;
+import kz.bee.drools.planner.schedule.domain.UnavailablePeriodConstraint;
 import kz.bee.drools.planner.schedule.solution.Schedule;
 import kz.bee.kudos.lesson.RingGroup;
 import kz.bee.kudos.lesson.RingOrder;
@@ -29,10 +34,13 @@ import kz.bee.wx.security.Role;
 import kz.bee.wx.security.User;
 
 import org.apache.log4j.xml.DOMConfigurator;
+import org.drools.ClassObjectFilter;
+import org.drools.WorkingMemory;
 import org.drools.planner.config.XmlSolverConfigurer;
 import org.drools.planner.core.Solver;
 import org.drools.planner.core.event.BestSolutionChangedEvent;
 import org.drools.planner.core.event.SolverEventListener;
+import org.drools.planner.core.score.constraint.ConstraintOccurrence;
 import org.drools.planner.core.solution.Solution;
 
 public class ScheduleMainJPA {
@@ -81,6 +89,7 @@ public class ScheduleMainJPA {
 		List<Time> timeList = new ArrayList<Time>();//5.1
 		List<Lesson> lessonList = new ArrayList<Lesson>();
 //		List<Long> studentList = new ArrayList<Long>();
+		List<UnavailablePeriodConstraint> unavailablePeriodConstraintList = new ArrayList<UnavailablePeriodConstraint>();
 		
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory("slrs");
 		EntityManager em = emf.createEntityManager();
@@ -98,11 +107,22 @@ public class ScheduleMainJPA {
 										.getResultList();
 		
 		//282660
-		List<kz.bee.kudos.ou.Class> kudosClasses = em.createQuery("select c from kz.bee.kudos.ou.Class c where c.parent.parent = :group and c.period = :period and c.level in (5,6,7,8)")
+		List<kz.bee.kudos.ou.Class> kudosClasses = em.createQuery("select c from kz.bee.kudos.ou.Class c where c.parent.parent = :group and c.period = :period and c.level in (9,10,11)")
 													.setParameter("group", em.find(Group.class, "BEE-Z-B-S48"))
 													.setParameter("period", em.find(kz.bee.kudos.period.Period.class, 282660L))
 													.getResultList();
 		
+		//282908
+//		List<Long> idList = new ArrayList<Long>();
+//		idList.add(282908L);
+//		idList.add(282912L);
+//		idList.add(282916L);
+//		idList.add(282920L);
+//		idList.add(282924L);
+//		List<kz.bee.kudos.ou.Class> kudosClasses = em.createQuery("select c from kz.bee.kudos.ou.Class c where c.id  in (:id)")
+//				.setParameter("id", idList)
+//				.getResultList();
+				
 //		List<kz.bee.kudos.course.Course> kudosCourses = em.createQuery("select c from kz.bee.kudos.course.Course c where c.period = :period and c.clazz.parent.parent = :school")
 //														.setParameter("period", em.find(kz.bee.kudos.period.Period.class, 282660L))
 //														.setParameter("school", em.find(Group.class, "BEE-Z-B-S48"))
@@ -135,7 +155,7 @@ public class ScheduleMainJPA {
 			r.setNumber(l.getName());
 			roomList.add(r);
 		}
-//		roomList = roomList.subList(0, roomList.size()/2);
+//		roomList = roomList.subList(0, 3);
 		
 		System.out.println("Room size: " + roomList.size());
 		
@@ -147,6 +167,8 @@ public class ScheduleMainJPA {
 			clazzList.add(clazz);
 		}
 		
+		//UnavailablePeriodConstraint unavailablePeriodConstraint = new UnavailablePeriodConstraint();
+		
 		for(kz.bee.kudos.course.Course c : kudosCourses) {
 			Course course = new Course();
 			course.setId(c.getId());
@@ -154,6 +176,11 @@ public class ScheduleMainJPA {
 			course.setClazz(getClazz(clazzList,c.getClazz().getId()));
 			course.setTeacher(getTeacher(teacherList, c.getTeacher().getName()));
 			courseList.add(course);
+			
+			if(course.getId().equals(284700L)) {
+//				unavailablePeriodConstraint.setId(1L);
+//				unavailablePeriodConstraint.setCourse(course);
+			}
 		}
 		
 		for(RingOrder r : ringOrder) {
@@ -178,8 +205,14 @@ public class ScheduleMainJPA {
 				p.setDay(d);
 				p.setTime(t);
 				periodList.add(p);
+				
+				if(d.getValue() == 1 && t.getValue() == 2) {
+//					unavailablePeriodConstraint.setPeriod(p);
+				}
 			}
 		}
+		
+//		unavailablePeriodConstraintList.add(unavailablePeriodConstraint);
 		
 		j = 1;
 		int k = 0;
@@ -215,6 +248,7 @@ public class ScheduleMainJPA {
 		schedule.setDayList(dayList);
 		schedule.setTimeList(timeList);
 		schedule.setLessonList(lessonList);
+		schedule.setUnavailablePeriodConstraintList(unavailablePeriodConstraintList);
 		
 		print(schedule);
 		
@@ -277,8 +311,32 @@ public class ScheduleMainJPA {
 		
 		System.out.println( "Score: " + schedule.getScore() + ", Time: " + this.solver.getTimeMillisSpend() );
 		System.out.println(htmlTable);
-		
 	}
+	
+//	public List<ScoreDetail> getScoreDetailList() {
+//        if (!(guiScoreDirector instanceof DroolsScoreDirector)) {
+//            return null;
+//        }
+//        Map<String, ScoreDetail> scoreDetailMap = new HashMap<String, ScoreDetail>();
+//        WorkingMemory workingMemory = ((DroolsScoreDirector) guiScoreDirector).getWorkingMemory();
+//        if (workingMemory == null) {
+//            return Collections.emptyList();
+//        }
+//        Iterator<ConstraintOccurrence> it = (Iterator<ConstraintOccurrence>) workingMemory.iterateObjects(
+//                new ClassObjectFilter(ConstraintOccurrence.class));
+//        while (it.hasNext()) {
+//            ConstraintOccurrence constraintOccurrence = it.next();
+//            ScoreDetail scoreDetail = scoreDetailMap.get(constraintOccurrence.getRuleId());
+//            if (scoreDetail == null) {
+//                scoreDetail = new ScoreDetail(constraintOccurrence.getRuleId(), constraintOccurrence.getConstraintType());
+//                scoreDetailMap.put(constraintOccurrence.getRuleId(), scoreDetail);
+//            }
+//            scoreDetail.addConstraintOccurrence(constraintOccurrence);
+//        }
+//        List<ScoreDetail> scoreDetailList = new ArrayList<ScoreDetail>(scoreDetailMap.values());
+//        Collections.sort(scoreDetailList);
+//        return scoreDetailList;
+//    }
 	
 	public Teacher getTeacher(List<Teacher> teachers, String id) {
 		for(Teacher t : teachers) {
