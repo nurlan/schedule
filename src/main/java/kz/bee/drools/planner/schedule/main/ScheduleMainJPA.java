@@ -33,31 +33,31 @@ import kz.bee.wx.security.Group;
 import kz.bee.wx.security.Role;
 import kz.bee.wx.security.User;
 
-import org.apache.log4j.xml.DOMConfigurator;
-import org.drools.ClassObjectFilter;
-import org.drools.WorkingMemory;
-import org.drools.planner.config.XmlSolverConfigurer;
+import org.drools.planner.config.SolverFactory;
+import org.drools.planner.config.XmlSolverFactory;
 import org.drools.planner.core.Solver;
 import org.drools.planner.core.event.BestSolutionChangedEvent;
 import org.drools.planner.core.event.SolverEventListener;
-import org.drools.planner.core.score.constraint.ConstraintOccurrence;
 import org.drools.planner.core.solution.Solution;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ScheduleMainJPA {
 
-	public static final String SOLVER_CONFIG
-	= "/scheduleSolverConfig.xml";
+	public static final String SOLVER_CONFIG = "/scheduleSolverConfig.xml";
 
+	protected final transient Logger logger = LoggerFactory.getLogger(getClass());
+	 
 	private volatile Solver solver;
 	
 	public ScheduleMainJPA() {
-		DOMConfigurator.configure(getClass().getResource("/log4j-test.xml"));
+//		DOMConfigurator.configure(getClass().getResource("/log4j-test.xml"));
 	}
 	
 	private void init() {
-		XmlSolverConfigurer configurer = new XmlSolverConfigurer();
-		configurer.configure(SOLVER_CONFIG);
-		solver = configurer.buildSolver();
+		SolverFactory solverFactory = new XmlSolverFactory(SOLVER_CONFIG);
+		solver = solverFactory.buildSolver();
+		
 		this.solver.addEventListener( new SolverEventListener() {
 		    public void bestSolutionChanged(BestSolutionChangedEvent event) {
 		        Schedule schedule = (Schedule) solver.getBestSolution();

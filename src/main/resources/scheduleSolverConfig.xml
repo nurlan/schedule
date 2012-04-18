@@ -3,10 +3,12 @@
 	<environmentMode>DEBUG</environmentMode>
 	<solutionClass>kz.bee.drools.planner.schedule.solution.Schedule</solutionClass>
 	<planningEntityClass>kz.bee.drools.planner.schedule.domain.Lesson</planningEntityClass>
-	<scoreDrl>/scheduleScoreRules.drl</scoreDrl>
-	<scoreDefinition>
+	
+	<scoreDirectorFactory>
 		<scoreDefinitionType>SIMPLE</scoreDefinitionType>
-	</scoreDefinition>
+		<scoreDrl>/scheduleScoreRules.drl</scoreDrl>
+	</scoreDirectorFactory>
+  
 	<termination>
 		<scoreAttained>0</scoreAttained>
 	</termination>
@@ -24,11 +26,12 @@
 				<moveFactoryClass>kz.bee.drools.planner.schedule.solver.move.factory.RoomChangeMoveFactory</moveFactoryClass>
 			</selector>
 			<selector>
-				<moveFactoryClass>kz.bee.drools.planner.schedule.solver.move.factory.LessonSwitchMoveFactory</moveFactoryClass>
+				<moveFactoryClass>kz.bee.drools.planner.schedule.solver.move.factory.LessonSwapMoveFactory</moveFactoryClass>
 			</selector>
 		</selector>
 		<acceptor>
-			<completeSolutionTabuSize>1500</completeSolutionTabuSize>
+			<planningEntityTabuSize>10</planningEntityTabuSize>
+      		<solutionTabuSize>1500</solutionTabuSize>
 		</acceptor>
 		<forager>
 			<!-- <pickEarlyType>NEVER</pickEarlyType> -->

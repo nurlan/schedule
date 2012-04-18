@@ -11,42 +11,40 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.drools.FactHandle;
 import org.drools.WorkingMemory;
-import org.drools.planner.core.localsearch.decider.acceptor.tabu.TabuPropertyEnabled;
 import org.drools.planner.core.move.Move;
+import org.drools.planner.core.score.director.ScoreDirector;
 
-public class RoomChangeMove implements Move, TabuPropertyEnabled{
+public class RoomChangeMove implements Move {
 
 	private Lesson lesson;
-	private Room toRoom;
-	
-	public RoomChangeMove(Lesson lesson, Room toRoom) {
-		this.lesson = lesson;
-		this.toRoom = toRoom;
-	}
-	
-	public Collection<? extends Object> getTabuProperties() {
-		return Collections.singletonList(lesson);
-	}
+    private Room toRoom;
 
-	public boolean isMoveDoable(WorkingMemory workingMemory) {
-		return !ObjectUtils.equals(lesson.getRoom(), toRoom);
-	}
-
-	public Move createUndoMove(WorkingMemory workingMemory) {
-		return new RoomChangeMove(lesson, lesson.getRoom());
-	}
-
-//	public void doMove(WorkingMemory workingMemory) {
-//		FactHandle lessonHandle = workingMemory.getFactHandle(lesson);
-//		lesson.setRoom(toRoom);
-//		workingMemory.update(lessonHandle, lesson);
-//	}
-
-	public void doMove(WorkingMemory workingMemory) {
-        CurriculumCourseMoveHelper.moveRoom(workingMemory, lesson, toRoom);
+    public RoomChangeMove(Lesson lecture, Room toRoom) {
+        this.lesson = lecture;
+        this.toRoom = toRoom;
     }
-	
-	public boolean equals(Object o) {
+
+    public boolean isMoveDoable(ScoreDirector scoreDirector) {
+        return !ObjectUtils.equals(lesson.getRoom(), toRoom);
+    }
+
+    public Move createUndoMove(ScoreDirector scoreDirector) {
+        return new RoomChangeMove(lesson, lesson.getRoom());
+    }
+
+    public void doMove(ScoreDirector scoreDirector) {
+        CurriculumCourseMoveHelper.moveRoom(scoreDirector, lesson, toRoom);
+    }
+
+    public Collection<? extends Object> getPlanningEntities() {
+        return Collections.singletonList(lesson);
+    }
+
+    public Collection<? extends Object> getPlanningValues() {
+        return Collections.singletonList(toRoom);
+    }
+
+    public boolean equals(Object o) {
         if (this == o) {
             return true;
         } else if (o instanceof RoomChangeMove) {
@@ -67,9 +65,8 @@ public class RoomChangeMove implements Move, TabuPropertyEnabled{
                 .toHashCode();
     }
 
-	@Override
-	public String toString() {
-		return "RoomChangeMove [lesson=" + lesson + ", toRoom=" + toRoom + "]";
-	}
+    public String toString() {
+        return lesson + " => " + toRoom;
+    }
     
 }

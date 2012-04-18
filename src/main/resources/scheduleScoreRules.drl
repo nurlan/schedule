@@ -1,13 +1,13 @@
 package kz.bee.drools.planner.schedule.solver;
     dialect "java"
 
-import org.drools.planner.core.score.calculator.SimpleScoreCalculator;
+import org.drools.planner.core.score.buildin.simple.SimpleScoreHolder;
 import org.drools.planner.core.score.constraint.UnweightedConstraintOccurrence;
 
 import kz.bee.drools.planner.schedule.domain.Lesson;
 import kz.bee.drools.planner.schedule.domain.UnavailablePeriodConstraint;
 
-global SimpleScoreCalculator scoreCalculator;
+global SimpleScoreHolder scoreHolder;
 
 //#
 // Two lessons in the same room at the same period.
@@ -64,5 +64,5 @@ rule "hardConstraintsBroken"
             count($unweightedConstraintOccurrence)
         )
     then
-        scoreCalculator.setScore(- $occurrenceCount.intValue());
+        scoreHolder.setScore(- $occurrenceCount.intValue());
 end

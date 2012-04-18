@@ -20,28 +20,27 @@ import kz.bee.drools.planner.schedule.domain.Lesson;
 import kz.bee.drools.planner.schedule.domain.Period;
 import kz.bee.drools.planner.schedule.domain.Room;
 
-import org.drools.WorkingMemory;
-import org.drools.FactHandle;
+import org.drools.planner.core.score.director.ScoreDirector;
 
 public class CurriculumCourseMoveHelper {
 
-    public static void movePeriod(WorkingMemory workingMemory, Lesson lesson, Period period) {
-        FactHandle factHandle = workingMemory.getFactHandle(lesson);
+	public static void movePeriod(ScoreDirector scoreDirector, Lesson lesson, Period period) {
+        scoreDirector.beforeVariableChanged(lesson, "period");
         lesson.setPeriod(period);
-        workingMemory.update(factHandle, lesson);
+        scoreDirector.afterVariableChanged(lesson, "period");
     }
 
-    public static void moveRoom(WorkingMemory workingMemory, Lesson lesson, Room room) {
-        FactHandle factHandle = workingMemory.getFactHandle(lesson);
+    public static void moveRoom(ScoreDirector scoreDirector, Lesson lesson, Room room) {
+        scoreDirector.beforeVariableChanged(lesson, "room");
         lesson.setRoom(room);
-        workingMemory.update(factHandle, lesson);
+        scoreDirector.afterVariableChanged(lesson, "room");
     }
 
-    public static void moveLesson(WorkingMemory workingMemory, Lesson lesson, Period period, Room room) {
-        FactHandle factHandle = workingMemory.getFactHandle(lesson);
+    public static void moveLesson(ScoreDirector scoreDirector, Lesson lesson, Period period, Room room) {
+        scoreDirector.beforeAllVariablesChanged(lesson);
         lesson.setPeriod(period);
         lesson.setRoom(room);
-        workingMemory.update(factHandle, lesson);
+        scoreDirector.afterAllVariablesChanged(lesson);
     }
 
     private CurriculumCourseMoveHelper() {

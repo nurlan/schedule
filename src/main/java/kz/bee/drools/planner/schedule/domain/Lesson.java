@@ -12,7 +12,9 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.drools.planner.api.domain.entity.PlanningEntity;
 import org.drools.planner.api.domain.variable.PlanningVariable;
-import org.drools.planner.api.domain.variable.ValueRangeFromSolutionProperty;
+import org.drools.planner.api.domain.variable.ValueRangeType;
+//import org.drools.planner.api.domain.variable.ValueRangeFromSolutionProperty;
+import org.drools.planner.api.domain.variable.ValueRange;
 
 /**
  * @author Nurlan Rakhimzhanov
@@ -78,7 +80,7 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 	}
 
 	@PlanningVariable(strengthWeightFactoryClass=PeriodStrengthWeightFactory.class)
-	@ValueRangeFromSolutionProperty(propertyName="periodList")
+	@ValueRange(type=ValueRangeType.FROM_SOLUTION_PROPERTY,solutionProperty="periodList")
 	public Period getPeriod() {
 		return period;
 	}
@@ -90,7 +92,7 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 
 
 	@PlanningVariable(strengthWeightFactoryClass=RoomStrengthWeightFactory.class)
-	@ValueRangeFromSolutionProperty(propertyName="roomList")
+	@ValueRange(type=ValueRangeType.FROM_SOLUTION_PROPERTY,solutionProperty="roomList")
 	public Room getRoom() {
 		return room;
 	}

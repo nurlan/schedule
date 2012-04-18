@@ -17,7 +17,8 @@ import kz.bee.drools.planner.schedule.domain.UnavailablePeriodConstraint;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.drools.planner.api.domain.solution.PlanningEntityCollectionProperty;
-import org.drools.planner.core.score.SimpleScore;
+//import org.drools.planner.core.score.SimpleScore;
+import org.drools.planner.core.score.buildin.simple.SimpleScore;
 import org.drools.planner.core.solution.Solution;
 
 /**

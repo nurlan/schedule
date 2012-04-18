@@ -34,7 +34,7 @@
 		<dependency>
 			<groupId>org.drools.planner</groupId>
 			<artifactId>drools-planner-core</artifactId>
-			<version>5.3.0.Final</version>
+			<version>5.4.0.CR1</version>
 		</dependency>
 		<!-- Commons -->
 		<dependency>
@@ -46,13 +46,26 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.6.0</version>
+			<version>1.6.4</version>
 		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.slf4j</groupId> -->
+<!-- 			<artifactId>slf4j-log4j12</artifactId> -->
+<!-- 			<version>1.6.0</version> -->
+<!-- 		</dependency> -->
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.6.0</version>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.0.0</version>
 		</dependency>
+
+		<!-- Xstream -->
+		<dependency>
+			<groupId>com.thoughtworks.xstream</groupId>
+			<artifactId>xstream</artifactId>
+			<version>1.4.1</version>
+		</dependency>
+	    
 		<!-- Kudos-core-entities -->
 		<dependency>
 			<groupId>kz.bee.kudos</groupId>
