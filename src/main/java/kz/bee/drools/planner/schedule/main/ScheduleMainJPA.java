@@ -1,7 +1,6 @@
 package kz.bee.drools.planner.schedule.main;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,7 +8,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -33,11 +31,16 @@ import kz.bee.wx.security.Group;
 import kz.bee.wx.security.Role;
 import kz.bee.wx.security.User;
 
+import org.drools.ClassObjectFilter;
+import org.drools.WorkingMemory;
 import org.drools.planner.config.SolverFactory;
 import org.drools.planner.config.XmlSolverFactory;
 import org.drools.planner.core.Solver;
 import org.drools.planner.core.event.BestSolutionChangedEvent;
 import org.drools.planner.core.event.SolverEventListener;
+import org.drools.planner.core.score.constraint.ConstraintOccurrence;
+import org.drools.planner.core.score.director.ScoreDirector;
+import org.drools.planner.core.score.director.drools.DroolsScoreDirector;
 import org.drools.planner.core.solution.Solution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +52,7 @@ public class ScheduleMainJPA {
 	protected final transient Logger logger = LoggerFactory.getLogger(getClass());
 	 
 	private volatile Solver solver;
+	private ScoreDirector scoreDirector;
 	
 	public ScheduleMainJPA() {
 //		DOMConfigurator.configure(getClass().getResource("/log4j-test.xml"));
@@ -57,6 +61,7 @@ public class ScheduleMainJPA {
 	private void init() {
 		SolverFactory solverFactory = new XmlSolverFactory(SOLVER_CONFIG);
 		solver = solverFactory.buildSolver();
+		scoreDirector = solver.getScoreDirectorFactory().buildScoreDirector();
 		
 		this.solver.addEventListener( new SolverEventListener() {
 		    public void bestSolutionChanged(BestSolutionChangedEvent event) {
@@ -71,12 +76,44 @@ public class ScheduleMainJPA {
 	
 	private void start() {
 		System.out.println("Start solving ...");
+		
 		this.solver.solve();
 		
 		Schedule schedule = (Schedule) solver.getBestSolution();
+		this.scoreDirector.setWorkingSolution(schedule);
+		this.scoreDirector.calculateScore();
+		
 		System.out.println( "Score: " + schedule.getScore() + ", Time: " + this.solver.getTimeMillisSpend() );
         print(schedule);
+        
         System.out.println("End solving ...");
+        
+    	System.out.println( "getScoreDetailList size:" + getScoreDetailList().size());
+		System.out.println( "Broken constrains list:" );
+		
+		for(ScoreDetail sd : getScoreDetailList()) {
+			System.out.println(sd);
+			System.out.println("=>"+sd.buildConstraintOccurrenceListText());
+		}
+		
+		System.out.println("THE END");
+		
+		
+		Schedule solution = new Schedule();
+		solution.setId(2L);
+		solution.setCourseList(schedule.getCourseList());
+		solution.setClazzList(schedule.getClazzList());
+		solution.setTeacherList(schedule.getTeacherList());
+		solution.setRoomList(schedule.getRoomList());
+		solution.setPeriodList(schedule.getPeriodList());
+		solution.setDayList(schedule.getDayList());
+		solution.setTimeList(schedule.getTimeList());
+		solution.setLessonList(schedule.getLessonList());
+		solution.setUnavailablePeriodConstraintList(schedule.getUnavailablePeriodConstraintList());
+		
+		ScheduleMain sm = new ScheduleMain();
+		sm.setPlanningProblem(solution);
+		sm.start();
 	}
 	
 	private void setPlanningProblem() {
@@ -224,10 +261,14 @@ public class ScheduleMainJPA {
 //				lesson.setTeacherId(course.getTeacher().getId());
 //				lesson.setClassId(course.getClazz().getId());
 				lesson.setCourse(course);
-				lesson.setPeriod(periodList.get(k % periodList.size()));
-				lesson.setRoom(roomList.get((k / periodList.size()) % roomList.size()));
+//				lesson.setPeriod(periodList.get(k % periodList.size()));
+//				lesson.setRoom(roomList.get((k / periodList.size()) % roomList.size()));
+				if( course.getId() == 284784L && k == 0) {
+					lesson.setPeriod(periodList.get(33));
+					lesson.setRoom(roomList.get(17));
+					k++;
+				}
 				lessonList.add(lesson);
-				k++;
 			}
 		}
 		System.out.println("Lessons size:" + j);
@@ -252,7 +293,8 @@ public class ScheduleMainJPA {
 		
 		print(schedule);
 		
-		this.solver.setPlanningProblem((Solution)schedule);
+		this.scoreDirector.setWorkingSolution(schedule);
+		this.solver.setPlanningProblem(this.scoreDirector.getWorkingSolution());
 	}
 	
 	public void print( Schedule schedule ) {
@@ -313,30 +355,33 @@ public class ScheduleMainJPA {
 		System.out.println(htmlTable);
 	}
 	
-//	public List<ScoreDetail> getScoreDetailList() {
-//        if (!(guiScoreDirector instanceof DroolsScoreDirector)) {
-//            return null;
-//        }
-//        Map<String, ScoreDetail> scoreDetailMap = new HashMap<String, ScoreDetail>();
-//        WorkingMemory workingMemory = ((DroolsScoreDirector) guiScoreDirector).getWorkingMemory();
-//        if (workingMemory == null) {
-//            return Collections.emptyList();
-//        }
-//        Iterator<ConstraintOccurrence> it = (Iterator<ConstraintOccurrence>) workingMemory.iterateObjects(
-//                new ClassObjectFilter(ConstraintOccurrence.class));
-//        while (it.hasNext()) {
-//            ConstraintOccurrence constraintOccurrence = it.next();
-//            ScoreDetail scoreDetail = scoreDetailMap.get(constraintOccurrence.getRuleId());
-//            if (scoreDetail == null) {
-//                scoreDetail = new ScoreDetail(constraintOccurrence.getRuleId(), constraintOccurrence.getConstraintType());
-//                scoreDetailMap.put(constraintOccurrence.getRuleId(), scoreDetail);
-//            }
-//            scoreDetail.addConstraintOccurrence(constraintOccurrence);
-//        }
-//        List<ScoreDetail> scoreDetailList = new ArrayList<ScoreDetail>(scoreDetailMap.values());
-//        Collections.sort(scoreDetailList);
-//        return scoreDetailList;
-//    }
+	public List<ScoreDetail> getScoreDetailList() {
+        if (!(scoreDirector instanceof DroolsScoreDirector)) {
+            return null;
+        }
+        Map<String, ScoreDetail> scoreDetailMap = new HashMap<String, ScoreDetail>();
+        WorkingMemory workingMemory = ((DroolsScoreDirector) scoreDirector).getWorkingMemory();
+        if (workingMemory == null) {
+            return Collections.emptyList();
+        }
+        Iterator<ConstraintOccurrence> it = (Iterator<ConstraintOccurrence>) workingMemory.iterateObjects(
+                new ClassObjectFilter(ConstraintOccurrence.class));
+        
+        while (it.hasNext()) {
+            ConstraintOccurrence constraintOccurrence = it.next();
+            ScoreDetail scoreDetail = scoreDetailMap.get(constraintOccurrence.getRuleId());
+            if (scoreDetail == null) {
+                scoreDetail = new ScoreDetail(constraintOccurrence.getRuleId(), constraintOccurrence.getConstraintType());
+                scoreDetailMap.put(constraintOccurrence.getRuleId(), scoreDetail);
+            }
+            scoreDetail.addConstraintOccurrence(constraintOccurrence);
+        }
+        
+        List<ScoreDetail> scoreDetailList = new ArrayList<ScoreDetail>(scoreDetailMap.values());
+        Collections.sort(scoreDetailList);
+        
+        return scoreDetailList;
+    }
 	
 	public Teacher getTeacher(List<Teacher> teachers, String id) {
 		for(Teacher t : teachers) {

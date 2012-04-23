@@ -22,24 +22,35 @@ rule "twoLessonSameTimeSameRoom"
 		insertLogical(new UnweightedConstraintOccurrence("twoLessonSameTimeSameRoom", $lesson1, $lesson2));
 end
 
-/*/#
-// Two lessons in the same room at the same period with the same course.
 //#
-rule "twoLessonSameTimeSameRoomSameCourse"
+// Two classes in the same room at the same period.
+//#
+rule "twoClassSameTimeSameRoom"
 	when
-		$lesson1 : Lesson($id : id, $period : period, $room : room, $course : course)
-		$lesson2 : Lesson(id != $id, period == $period, room == $room, course == $course)
+		$lesson1 : Lesson($id : id, $period : period, $room : room, $clazz : course.clazz)
+		$lesson2 : Lesson(id != $id, period == $period, room == $room, course.clazz != $clazz)
 	then
-		insertLogical(new UnweightedConstraintOccurrence("twoLessonSameTimeSameRoomSameCourse", $lesson1, $lesson2));
+		insertLogical(new UnweightedConstraintOccurrence("twoClassSameTimeSameRoom", $lesson1, $lesson2));
 end
-*/
+
 //#
-// Two lessons at the same time with a same teacher.
+// Two lessons at the same time with a same class.
+//#
+rule "twoLessonSameTimeSameClass"
+	when
+		$lesson1 : Lesson($id : id, $period : period, $clazz : course.clazz)
+		$lesson2 : Lesson(id != $id, period == $period, course.clazz == $clazz)
+	then
+		insertLogical(new UnweightedConstraintOccurrence("twoLessonSameTimeSameClass", $lesson1, $lesson2));
+end
+
+//#
+// Two lessons at the same time or same room with a same teacher.
 //#
 rule "twoLessonSameTimeSameTeacher"
 	when
-		$lesson1 : Lesson($id : id, $period : period, $room : room, $teacher : course.teacher)
-		$lesson2 : Lesson(id != $id, period == $period, room != $room, course.teacher == $teacher)
+		$lesson1 : Lesson($id : id, $period : period, $teacher : course.teacher)
+		$lesson2 : Lesson(id != $id, period == $period, course.teacher == $teacher)
 	then
 		insertLogical(new UnweightedConstraintOccurrence("twoLessonSameTimeSameTeacher", $lesson1, $lesson2));
 end

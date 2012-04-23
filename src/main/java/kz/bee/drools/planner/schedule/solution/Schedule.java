@@ -148,7 +148,7 @@ public class Schedule implements Solution<SimpleScore> {
 	}
 
 	/**
-     * Clone will only deep copy the {@link #lectureList}.
+     * Clone will only deep copy the {@link #lessonList}.
      */
 	public Solution<SimpleScore> cloneSolution() {
 		Schedule clone = new Schedule();
