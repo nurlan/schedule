@@ -1,13 +1,18 @@
 package kz.bee.drools.planner.schedule.solver;
     dialect "java"
 
-import org.drools.planner.core.score.buildin.simple.SimpleScoreHolder;
-import org.drools.planner.core.score.constraint.UnweightedConstraintOccurrence;
+import org.drools.planner.core.score.buildin.hardandsoft.HardAndSoftScoreHolder;
+import org.drools.planner.core.score.constraint.IntConstraintOccurrence;
+import org.drools.planner.core.score.constraint.ConstraintType;
 
 import kz.bee.drools.planner.schedule.domain.Lesson;
 import kz.bee.drools.planner.schedule.domain.UnavailablePeriodConstraint;
 
-global SimpleScoreHolder scoreHolder;
+global HardAndSoftScoreHolder scoreHolder;
+
+// ############################################################################
+// Hard constraints
+// ############################################################################
 
 //#
 // Two lessons in the same room at the same period.
@@ -19,7 +24,9 @@ rule "twoLessonSameTimeSameRoom"
 		//$lesson1 : Lesson($id : id)
 		//$lesson2 : Lesson(id != $id)
 	then
-		insertLogical(new UnweightedConstraintOccurrence("twoLessonSameTimeSameRoom", $lesson1, $lesson2));
+		insertLogical(new IntConstraintOccurrence("twoLessonSameTimeSameRoom", 
+							ConstraintType.NEGATIVE_HARD, 1,
+							$lesson1, $lesson2));
 end
 
 //#
@@ -30,7 +37,9 @@ rule "twoClassSameTimeSameRoom"
 		$lesson1 : Lesson($id : id, $period : period, $room : room, $clazz : course.clazz)
 		$lesson2 : Lesson(id != $id, period == $period, room == $room, course.clazz != $clazz)
 	then
-		insertLogical(new UnweightedConstraintOccurrence("twoClassSameTimeSameRoom", $lesson1, $lesson2));
+		insertLogical(new IntConstraintOccurrence("twoClassSameTimeSameRoom",
+							ConstraintType.NEGATIVE_HARD, 1, 
+							$lesson1, $lesson2));
 end
 
 //#
@@ -41,7 +50,9 @@ rule "twoLessonSameTimeSameClass"
 		$lesson1 : Lesson($id : id, $period : period, $clazz : course.clazz)
 		$lesson2 : Lesson(id != $id, period == $period, course.clazz == $clazz)
 	then
-		insertLogical(new UnweightedConstraintOccurrence("twoLessonSameTimeSameClass", $lesson1, $lesson2));
+		insertLogical(new IntConstraintOccurrence("twoLessonSameTimeSameClass", 
+							ConstraintType.NEGATIVE_HARD, 1,
+							$lesson1, $lesson2));
 end
 
 //#
@@ -52,7 +63,9 @@ rule "twoLessonSameTimeSameTeacher"
 		$lesson1 : Lesson($id : id, $period : period, $teacher : course.teacher)
 		$lesson2 : Lesson(id != $id, period == $period, course.teacher == $teacher)
 	then
-		insertLogical(new UnweightedConstraintOccurrence("twoLessonSameTimeSameTeacher", $lesson1, $lesson2));
+		insertLogical(new IntConstraintOccurrence("twoLessonSameTimeSameTeacher",
+							ConstraintType.NEGATIVE_HARD, 1, 
+							$lesson1, $lesson2));
 end
 
 // Availabilities: Each lesson in a period unavailable for that course.
@@ -61,19 +74,41 @@ rule "unavailablePeriodConstraint"
         $unavailablePeriodConstraint : UnavailablePeriodConstraint($course : course, $period : period)
         $lesson : Lesson(course == $course, period == $period)
     then
-    	insertLogical(new UnweightedConstraintOccurrence("twoLessonSameTimeSameTeacher", $unavailablePeriodConstraint, $lesson));
+    	insertLogical(new IntConstraintOccurrence("twoLessonSameTimeSameTeacher",
+    						ConstraintType.NEGATIVE_HARD, 10, 
+    						$unavailablePeriodConstraint, $lesson));
 end
+
+// ############################################################################
+// Soft constraints
+// ############################################################################
+
+
 
 // ############################################################################
 // Calculate score
 // ############################################################################
 
+// Accumulate hard constraints
 rule "hardConstraintsBroken"
+        salience -1 // Do the other rules first (optional, for performance)
     when
-        $occurrenceCount : Number() from accumulate(
-            $unweightedConstraintOccurrence : UnweightedConstraintOccurrence(),
-            count($unweightedConstraintOccurrence)
+        $hardTotal : Number() from accumulate(
+            IntConstraintOccurrence(constraintType == ConstraintType.NEGATIVE_HARD, $weight : weight),
+            sum($weight) // Vote for http://jira.jboss.com/jira/browse/JBRULES-1075
         )
     then
-        scoreHolder.setScore(- $occurrenceCount.intValue());
+        scoreHolder.setHardConstraintsBroken($hardTotal.intValue());
+end
+
+// Accumulate soft constraints
+rule "softConstraintsBroken"
+        salience -1 // Do the other rules first (optional, for performance)
+    when
+        $softTotal : Number() from accumulate(
+            IntConstraintOccurrence(constraintType == ConstraintType.NEGATIVE_SOFT, $weight : weight),
+            sum($weight) // Vote for http://jira.jboss.com/jira/browse/JBRULES-1075
+        )
+    then
+        scoreHolder.setSoftConstraintsBroken($softTotal.intValue());
 end

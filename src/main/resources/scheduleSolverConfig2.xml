@@ -5,19 +5,19 @@
 	<planningEntityClass>kz.bee.drools.planner.schedule.domain.Lesson</planningEntityClass>
 	
 	<scoreDirectorFactory>
-		<scoreDefinitionType>SIMPLE</scoreDefinitionType>
+		<scoreDefinitionType>HARD_AND_SOFT</scoreDefinitionType>
 		<scoreDrl>/scheduleScoreRules.drl</scoreDrl>
 	</scoreDirectorFactory>
   
 	<termination>
 <!-- 		<terminationCompositionStyle>OR</terminationCompositionStyle> -->
 <!--         <maximumStepCount>1550</maximumStepCount> -->
-        <scoreAttained>0</scoreAttained>
+        <scoreAttained>0hard/0soft</scoreAttained>
 	</termination>
 
 	<constructionHeuristic>
 		<constructionHeuristicType>FIRST_FIT_DECREASING</constructionHeuristicType>
-		<constructionHeuristicPickEarlyType>FIRST_LAST_STEP_SCORE_EQUAL_OR_IMPROVING</constructionHeuristicPickEarlyType>
+<!-- 		<constructionHeuristicPickEarlyType>FIRST_LAST_STEP_SCORE_EQUAL_OR_IMPROVING</constructionHeuristicPickEarlyType> -->
 	</constructionHeuristic>
 
 	<localSearch>
@@ -33,11 +33,12 @@
 			</selector>
 		</selector>
 		<acceptor>
-			<planningEntityTabuSize>13</planningEntityTabuSize>
+			<planningEntityTabuSize>10</planningEntityTabuSize>
       		<solutionTabuSize>1500</solutionTabuSize>
 		</acceptor>
 		<forager>
-			<!-- <pickEarlyType>NEVER</pickEarlyType> -->
+			<pickEarlyType>NEVER</pickEarlyType>
+      		<minimalAcceptedSelection>900</minimalAcceptedSelection>
 		</forager>
 	</localSearch>
 </solver>

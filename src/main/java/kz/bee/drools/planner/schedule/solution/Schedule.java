@@ -18,6 +18,7 @@ import kz.bee.drools.planner.schedule.domain.UnavailablePeriodConstraint;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.drools.planner.api.domain.solution.PlanningEntityCollectionProperty;
 //import org.drools.planner.core.score.SimpleScore;
+import org.drools.planner.core.score.buildin.hardandsoft.HardAndSoftScore;
 import org.drools.planner.core.score.buildin.simple.SimpleScore;
 import org.drools.planner.core.solution.Solution;
 
@@ -25,7 +26,7 @@ import org.drools.planner.core.solution.Solution;
  * @author Nurlan Rakhimzhanov
  *
  */
-public class Schedule implements Solution<SimpleScore> {
+public class Schedule implements Solution<HardAndSoftScore> {
 
 	private Long id;
 	private List<Course> courseList;
@@ -39,7 +40,7 @@ public class Schedule implements Solution<SimpleScore> {
 	
 	private List<Lesson> lessonList;
 	
-	private SimpleScore score;
+	private HardAndSoftScore score;
 	
 	public Long getId() {
 		return id;
@@ -124,17 +125,20 @@ public class Schedule implements Solution<SimpleScore> {
 		this.lessonList = lessonList;
 	}
 
-	public SimpleScore getScore() {
+	public HardAndSoftScore getScore() {
 		return score;
 	}
 
-	public void setScore(SimpleScore score) {
+	public void setScore(HardAndSoftScore score) {
 		this.score = score;
 	}
 
+	// ************************************************************************
+    // Complex methods
+    // ************************************************************************
+	
 	public Collection<? extends Object> getProblemFacts() {
 		List<Object> facts =  new ArrayList<Object>();
-		
 		facts.addAll(courseList);
 		facts.addAll(clazzList);
 		facts.addAll(teacherList);
@@ -143,14 +147,14 @@ public class Schedule implements Solution<SimpleScore> {
 		facts.addAll(dayList);
 		facts.addAll(timeList);
 		facts.addAll(unavailablePeriodConstraintList);
-		
+		// Do not add the planning entity's (lessonList) because that will be done automatically
 		return facts;
 	}
 
 	/**
      * Clone will only deep copy the {@link #lessonList}.
      */
-	public Solution<SimpleScore> cloneSolution() {
+	public Schedule cloneSolution() {
 		Schedule clone = new Schedule();
 		
 		clone.id = id;

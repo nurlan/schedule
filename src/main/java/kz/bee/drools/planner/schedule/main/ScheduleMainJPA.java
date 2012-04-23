@@ -41,7 +41,6 @@ import org.drools.planner.core.event.SolverEventListener;
 import org.drools.planner.core.score.constraint.ConstraintOccurrence;
 import org.drools.planner.core.score.director.ScoreDirector;
 import org.drools.planner.core.score.director.drools.DroolsScoreDirector;
-import org.drools.planner.core.solution.Solution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +54,7 @@ public class ScheduleMainJPA {
 	private ScoreDirector scoreDirector;
 	
 	public ScheduleMainJPA() {
-//		DOMConfigurator.configure(getClass().getResource("/log4j-test.xml"));
+		
 	}
 	
 	private void init() {
