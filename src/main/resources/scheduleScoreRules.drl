@@ -13,7 +13,7 @@ global HardAndSoftScoreHolder scoreHolder;
 // ############################################################################
 // Hard constraints
 // ############################################################################
-
+/*
 //#
 // Two lessons in the same room at the same period.
 //#
@@ -21,15 +21,13 @@ rule "twoLessonSameTimeSameRoom"
 	when
 		$lesson1 : Lesson($id : id, $period : period, $room : room)
 		$lesson2 : Lesson(id != $id, period == $period, room == $room)
-		//$lesson1 : Lesson($id : id)
-		//$lesson2 : Lesson(id != $id)
 	then
 		insertLogical(new IntConstraintOccurrence("twoLessonSameTimeSameRoom", 
 							ConstraintType.NEGATIVE_HARD, 1,
 							$lesson1, $lesson2));
 end
-
-//#
+*/
+/*//#
 // Two classes in the same room at the same period.
 //#
 rule "twoClassSameTimeSameRoom"
@@ -41,18 +39,62 @@ rule "twoClassSameTimeSameRoom"
 							ConstraintType.NEGATIVE_HARD, 1, 
 							$lesson1, $lesson2));
 end
-
+*/
 //#
-// Two lessons at the same time with a same class.
+// 1 class(wx_group) in 2 lessons at the same period
 //#
-rule "twoLessonSameTimeSameClass"
+rule "oneClassInTwoLessonsInOnePeriod"
 	when
-		$lesson1 : Lesson($id : id, $period : period, $clazz : course.clazz)
-		$lesson2 : Lesson(id != $id, period == $period, course.clazz == $clazz)
+		$lesson1 : Lesson($id : id, $period : period, $wxGroupName : course.clazz.wxGroupName, $clazz : course.clazz, $courseName : course.name ) 
+		$lesson2 : Lesson(id != $id, period == $period, course.clazz.wxGroupName == $wxGroupName, course.clazz != $clazz, course.name != $courseName ) 
 	then
-		insertLogical(new IntConstraintOccurrence("twoLessonSameTimeSameClass", 
+		insertLogical(new IntConstraintOccurrence("oneClassInTwoLessonsInOnePeriod", 
 							ConstraintType.NEGATIVE_HARD, 1,
 							$lesson1, $lesson2));
+end
+
+rule "oneClassInTwoLessonsInOnePeriod1"
+	when
+		$lesson1 : Lesson($id : id, $period : period, $wxGroupName : course.clazz.wxGroupName, $clazz : course.clazz, $courseName : course.name ) 
+		$lesson2 : Lesson(id != $id, period == $period, course.clazz.wxGroupName == $wxGroupName, course.clazz == $clazz, course.name != $courseName ) 
+	then
+		insertLogical(new IntConstraintOccurrence("oneClassInTwoLessonsInOnePeriod1", 
+							ConstraintType.NEGATIVE_HARD, 1,
+							$lesson1, $lesson2));
+end
+
+rule "oneClassInTwoLessonsInOnePeriod2"
+	when
+		$lesson1 : Lesson($id : id, $period : period, $clazz : course.clazz ) 
+		$lesson2 : Lesson(id != $id, period == $period, course.clazz == $clazz ) 
+	then
+		insertLogical(new IntConstraintOccurrence("oneClassInTwoLessonsInOnePeriod2", 
+							ConstraintType.NEGATIVE_HARD, 1,
+							$lesson1, $lesson2));
+end
+/*
+rule "oneClassInTwoLessonsInOnePeriod3"
+	when
+		$lesson1 : Lesson($id : id, $day : date, $course : course ) 
+		$lesson2 : Lesson(id != $id, date == $day, course == $course ) 
+	then
+		insertLogical(new IntConstraintOccurrence("oneClassInTwoLessonsInOnePeriod3", 
+							ConstraintType.NEGATIVE_HARD, 2,
+							$lesson1, $lesson2));
+end
+*/
+
+rule "noMoreThanTwoSameLessonsInOneDay"
+	when
+		$lesson : Lesson($id : id, $period : period, $clazz : course.clazz)
+        $lessonCount : Number(intValue > 1) from accumulate(
+            $lesson2 : Lesson(id != $id, period == $period, course.clazz == $clazz)
+            count($lesson2)
+        )
+	then
+		insertLogical(new IntConstraintOccurrence("noMoreThanTwoSameLessonsInOneDay", 
+							ConstraintType.NEGATIVE_HARD, 2,
+							$lesson, $lessonCount));
 end
 
 //#
@@ -67,9 +109,9 @@ rule "twoLessonSameTimeSameTeacher"
 							ConstraintType.NEGATIVE_HARD, 1, 
 							$lesson1, $lesson2));
 end
-
+/*
 // Availabilities: Each lesson in a period unavailable for that course.
-rule "unavailablePeriodConstraint"
+/*rule "unavailablePeriodConstraint"
     when
         $unavailablePeriodConstraint : UnavailablePeriodConstraint($course : course, $period : period)
         $lesson : Lesson(course == $course, period == $period)
@@ -78,7 +120,7 @@ rule "unavailablePeriodConstraint"
     						ConstraintType.NEGATIVE_HARD, 10, 
     						$unavailablePeriodConstraint, $lesson));
 end
-
+*/
 // ############################################################################
 // Soft constraints
 // ############################################################################

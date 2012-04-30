@@ -3,11 +3,14 @@ package kz.bee.drools.planner.schedule.main;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -23,6 +26,7 @@ import kz.bee.drools.planner.schedule.domain.Teacher;
 import kz.bee.drools.planner.schedule.domain.Time;
 import kz.bee.drools.planner.schedule.domain.UnavailablePeriodConstraint;
 import kz.bee.drools.planner.schedule.solution.Schedule;
+import kz.bee.kudos.lesson.Lesson.Status;
 import kz.bee.kudos.lesson.RingGroup;
 import kz.bee.kudos.lesson.RingOrder;
 import kz.bee.kudos.ou.Location;
@@ -94,25 +98,53 @@ public class ScheduleMainJPA {
 			System.out.println(sd);
 			System.out.println("=>"+sd.buildConstraintOccurrenceListText());
 		}
+
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory("slrs");
+		EntityManager em = emf.createEntityManager();
 		
+		em.getTransaction().begin();
+		for(Lesson lesson : schedule.getLessonList()) {
+			kz.bee.kudos.lesson.Lesson kudosLesson = new kz.bee.kudos.lesson.Lesson();
+			Calendar cl = Calendar.getInstance();
+			cl.set(Calendar.DAY_OF_WEEK,lesson.getPeriod().getDay().getValue()+1);
+			RingOrder ring = em.find(RingOrder.class, lesson.getPeriod().getTime().getId());
+			StringTokenizer st = new StringTokenizer(ring.getBegin());
+			cl.set(Calendar.HOUR_OF_DAY, Integer.parseInt(st.nextToken(":")));
+			cl.set(Calendar.MINUTE, Integer.parseInt(st.nextToken(":")));
+			kudosLesson.setBegin(cl.getTime());
+			
+			st = new StringTokenizer(ring.getEnd());
+			cl.set(Calendar.HOUR_OF_DAY, Integer.parseInt(st.nextToken(":")));
+			cl.set(Calendar.MINUTE, Integer.parseInt(st.nextToken(":")));
+			kudosLesson.setEnd(cl.getTime());
+			kudosLesson.setCourse(em.find(kz.bee.kudos.course.Course.class,lesson.getCourse().getId()));
+			kudosLesson.setRing(ring);
+			kudosLesson.setOrder(lesson.getPeriod().getTime().getValue());
+			kudosLesson.setStatus(Status.PLANNED);
+			kudosLesson.setTeacher(em.find(User.class, lesson.getCourse().getTeacher().getId()));
+			
+			em.persist(kudosLesson);
+		}
+		
+		em.getTransaction().commit();
 		System.out.println("THE END");
 		
 		
-		Schedule solution = new Schedule();
-		solution.setId(2L);
-		solution.setCourseList(schedule.getCourseList());
-		solution.setClazzList(schedule.getClazzList());
-		solution.setTeacherList(schedule.getTeacherList());
-		solution.setRoomList(schedule.getRoomList());
-		solution.setPeriodList(schedule.getPeriodList());
-		solution.setDayList(schedule.getDayList());
-		solution.setTimeList(schedule.getTimeList());
-		solution.setLessonList(schedule.getLessonList());
-		solution.setUnavailablePeriodConstraintList(schedule.getUnavailablePeriodConstraintList());
-		
-		ScheduleMain sm = new ScheduleMain();
-		sm.setPlanningProblem(solution);
-		sm.start();
+//		Schedule solution = new Schedule();
+//		solution.setId(2L);
+//		solution.setCourseList(schedule.getCourseList());
+//		solution.setClazzList(schedule.getClazzList());
+//		solution.setTeacherList(schedule.getTeacherList());
+//		solution.setRoomList(schedule.getRoomList());
+//		solution.setPeriodList(schedule.getPeriodList());
+//		solution.setDayList(schedule.getDayList());
+//		solution.setTimeList(schedule.getTimeList());
+//		solution.setLessonList(schedule.getLessonList());
+//		solution.setUnavailablePeriodConstraintList(schedule.getUnavailablePeriodConstraintList());
+//		
+//		ScheduleMain sm = new ScheduleMain();
+//		sm.setPlanningProblem(solution);
+//		sm.start();
 	}
 	
 	private void setPlanningProblem() {
@@ -134,18 +166,18 @@ public class ScheduleMainJPA {
 		
 		
 		List<User> kudosTeachers = em.createQuery("select m.user from Membership m where m.group = :group and m.role = :role")
-									.setParameter("group", em.find(Group.class, "BEE-Z-B-S48"))
+									.setParameter("group", em.find(Group.class, "EDU-A-J-S118"))
 									.setParameter("role", em.find(Role.class, "TEACHER"))
 									.getResultList();
 		
 		List<Location> kudosRooms = em.createQuery("select l from Location l where l.school = :school")
-										.setParameter("school", em.find(School.class, "BEE-Z-B-S48"))
+										.setParameter("school", em.find(School.class, "EDU-A-J-S118"))
 										.getResultList();
 		
 		//282660
 		List<kz.bee.kudos.ou.Class> kudosClasses = em.createQuery("select c from kz.bee.kudos.ou.Class c where c.parent.parent = :group and c.period = :period and c.level in (9,10,11)")
-													.setParameter("group", em.find(Group.class, "BEE-Z-B-S48"))
-													.setParameter("period", em.find(kz.bee.kudos.period.Period.class, 282660L))
+													.setParameter("group", em.find(Group.class, "EDU-A-J-S118"))
+													.setParameter("period", em.find(kz.bee.kudos.period.Period.class, 67162L))
 													.getResultList();
 		
 		//282908
@@ -164,12 +196,12 @@ public class ScheduleMainJPA {
 //														.setParameter("school", em.find(Group.class, "BEE-Z-B-S48"))
 //														.getResultList();
 		
-		List<kz.bee.kudos.course.Course> kudosCourses = em.createQuery("select c from kz.bee.kudos.course.Course c where c.clazz in (:kudosClasses)")
+		List<kz.bee.kudos.course.Course> kudosCourses = em.createQuery("select c from kz.bee.kudos.course.Course c where c.clazz in (:kudosClasses) and c.teacher is not null")
 														.setParameter("kudosClasses", kudosClasses)
 														.getResultList();
 		
 		List<RingOrder> ringOrder = em.createQuery("select r from RingOrder r where r.group = :ringGroup order by r.order asc")
-										.setParameter("ringGroup", em.find(RingGroup.class, 322828L))
+										.setParameter("ringGroup", em.find(RingGroup.class, 328448L))
 										.getResultList();
 		
 //		List<RingOrder> ringOrder2 = em.createQuery("select r from RingOrder r where r.group = :ringGroup order by r.order asc")
@@ -199,7 +231,9 @@ public class ScheduleMainJPA {
 			Class clazz = new Class();
 			clazz.setId(c.getId());
 //			clazz.setStudentList(studentList);
+			clazz.setWxGroupName(c.getParent().getName());
 			clazz.seteLevel(c.getLevel().intValue());
+			
 			clazzList.add(clazz);
 		}
 		
@@ -208,6 +242,7 @@ public class ScheduleMainJPA {
 		for(kz.bee.kudos.course.Course c : kudosCourses) {
 			Course course = new Course();
 			course.setId(c.getId());
+			course.setName(c.getName());
 			course.setLessonCount(c.getWeeklyHours().intValue());
 			course.setClazz(getClazz(clazzList,c.getClazz().getId()));
 			course.setTeacher(getTeacher(teacherList, c.getTeacher().getName()));
@@ -302,27 +337,36 @@ public class ScheduleMainJPA {
 		List<Lesson> lessonList = schedule.getLessonList();
 		List<Room> roomList = schedule.getRoomList();
 		
-		String [][]table = new String[periodList.size()][roomList.size()];
+//		String [][]table = new String[periodList.size()][roomList.size()];
+		String [][]table = new String[periodList.size()][clazzList.size()];
 		
 		for(int i = 0; i < periodList.size(); i++) {
-			for(int j = 0; j < roomList.size(); j++) {
-//			for(int j = 0; j < clazzList.size(); j++) {
+//			for(int j = 0; j < roomList.size(); j++) {
+			for(int j = 0; j < clazzList.size(); j++) {
 				for( Lesson l : lessonList ) {
-					if( periodList.get(i) == l.getPeriod() && roomList.get(j) == l.getRoom() ) {
+//					if( periodList.get(i) == l.getPeriod() && roomList.get(j) == l.getRoom() ) {
+//						if(table[i][j] == null) table[i][j] = "";
+//						table[i][j] += "Course [#" + l.getCourse().getId() + "]<br/>Teacher[" + l.getCourse().getTeacher().getId() + "]<br/>Class[" 
+//													+ l.getCourse().getClazz().getId()+", level=" + l.getCourse().getClazz().geteLevel() + "];";
+//					}
+					if( periodList.get(i) == l.getPeriod() && clazzList.get(j) == l.getCourse().getClazz() ) {
 						if(table[i][j] == null) table[i][j] = "";
-						table[i][j] += "Course [#" + l.getCourse().getId() + "]<br/>Teacher[" + l.getCourse().getTeacher().getId() + "]<br/>Class[" 
-													+ l.getCourse().getClazz().getId()+", level=" + l.getCourse().getClazz().geteLevel() + "];";
+						table[i][j] += "Course [#" + l.getCourse().getId() + "]<br/>Teacher[" + l.getCourse().getTeacher().getId() + "]<br/>Room[" 
+													+ l.getCourse().getRoom()+", level=" + l.getCourse().getClazz().geteLevel() + "];";
 					}
 				}
 			}
 		}
 		
-		String htmlTable = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><table border='1'><tr><td>Period\\Rooms</td>";
+//		String htmlTable = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><table border='1'><tr><td>Period\\Rooms</td>";
+		String htmlTable = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><table border='1'><tr><td>Period\\Classes</td>";
 		
-		for(int i = 0; i < roomList.size(); i++ ) {
-			htmlTable += "<td> Room[" + roomList.get(i).getNumber()+"]</td>";
+//		for(int i = 0; i < roomList.size(); i++ ) {
+//			htmlTable += "<td> Room[" + roomList.get(i).getNumber()+"]</td>";
+//		}
+		for(int i = 0; i < clazzList.size(); i++ ) {
+			htmlTable += "<td> class[" + clazzList.get(i).getId()+"]</td>";
 		}
-		
 		htmlTable += "</tr>";
 		
 		for( int i = 0; i < table.length; i++) {

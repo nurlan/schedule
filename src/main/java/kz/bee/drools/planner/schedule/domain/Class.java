@@ -14,6 +14,7 @@ public class Class implements Serializable, Comparable<Class> {
 	private Long id;
 	private Room room;
 	//private String ringGroup;
+	private String wxGroupName;
 	private int eLevel;
 	
 	public Long getId() {
@@ -43,10 +44,18 @@ public class Class implements Serializable, Comparable<Class> {
 		this.eLevel = eLevel;
 	}
 	
+	public String getWxGroupName() {
+		return wxGroupName;
+	}
+	public void setWxGroupName(String wxGroupName) {
+		this.wxGroupName = wxGroupName;
+	}
+
 	@Override
 	public String toString() {
 		return "Class [id=" + id + ", room=" + room //+ ", ringGroup="
 //				+ ringGroup + "]";
+				+ ", wxGroupName=" + wxGroupName
 				+ ", eLevel=" + eLevel;
 	}
 
@@ -55,6 +64,7 @@ public class Class implements Serializable, Comparable<Class> {
 			.append(id, other.id)
 			.append(room, other.room)
 //			.append(ringGroup, other.ringGroup)
+			.append(wxGroupName, other.wxGroupName)
 			.append(eLevel, other.eLevel)
 			.toComparison();
 	}

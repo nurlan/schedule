@@ -22,16 +22,18 @@
 		<class>kz.bee.kudos.course.Course</class>
 		<class>kz.bee.kudos.period.Period</class>
 		<class>kz.bee.kudos.course.Syllabus</class>
+		<class>kz.bee.kudos.lesson.Lesson</class>
+		<class>kz.bee.kudos.course.Topic</class>
 		
 		<properties>
 			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect" />
-			<property name="hibernate.hbm2ddl.auto" value="validate" />
+			<property name="hibernate.hbm2ddl.auto" value="update" />
 			<property name="hibernate.show_sql" value="true" />
 			<property name="hibernate.format_sql" value="true" />
 			<!-- Only relevant if Seam is loading the persistence unit (Java SE bootstrap) -->
 
 			<property name="hibernate.connection.driver_class" value="org.postgresql.Driver" />
-			<property name="hibernate.connection.url" value="jdbc:postgresql://localhost/slrs" />
+			<property name="hibernate.connection.url" value="jdbc:postgresql://localhost/slrs_29.04.12" />
 			<property name="hibernate.connection.username" value="postgres" />
 			<property name="hibernate.connection.password" value="postgres" />
 		</properties>

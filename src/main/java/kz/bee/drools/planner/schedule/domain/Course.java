@@ -11,6 +11,7 @@ import org.apache.commons.lang.builder.CompareToBuilder;
 public class Course implements Serializable, Comparable<Course> {
 
 	private Long id;
+	private String name;
 	private int lessonCount;
 	private Teacher teacher;
 	private Class clazz;
@@ -23,6 +24,15 @@ public class Course implements Serializable, Comparable<Course> {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 
@@ -66,17 +76,19 @@ public class Course implements Serializable, Comparable<Course> {
 	}
 
 
+
 	@Override
 	public String toString() {
-		return "Course [id=" + id + ", lessonCount=" + lessonCount
-				+ ", teacher=" + teacher + ", clazz=" + clazz + ", room="
-				+ room + "]";
+		return "Course [id=" + id + ", name=" + name
+				+ ", lessonCount=" + lessonCount + ", teacher=" + teacher
+				+ ", clazz=" + clazz + ", room=" + room + "]";
 	}
 
 
 	public int compareTo(Course other) {
 		return new CompareToBuilder()
 			.append(id, other.id)
+			.append(name, other.name)
 			.append(lessonCount, other.lessonCount)
 			.append(teacher, other.teacher)
 			.append(clazz, other.clazz)

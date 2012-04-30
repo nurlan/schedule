@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 import kz.bee.drools.planner.schedule.domain.solver.LessonDifficultyWeightFactory;
 import kz.bee.drools.planner.schedule.domain.solver.PeriodStrengthWeightFactory;
-import kz.bee.drools.planner.schedule.domain.solver.PeriodStrengthWeightFactory.PeriodStrengthWeight;
 import kz.bee.drools.planner.schedule.domain.solver.RoomStrengthWeightFactory;
 
 import org.apache.commons.lang.builder.CompareToBuilder;
@@ -12,9 +11,8 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.drools.planner.api.domain.entity.PlanningEntity;
 import org.drools.planner.api.domain.variable.PlanningVariable;
-import org.drools.planner.api.domain.variable.ValueRangeType;
-//import org.drools.planner.api.domain.variable.ValueRangeFromSolutionProperty;
 import org.drools.planner.api.domain.variable.ValueRange;
+import org.drools.planner.api.domain.variable.ValueRangeType;
 
 /**
  * @author Nurlan Rakhimzhanov
@@ -32,6 +30,7 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 	
 	private Period period;
 	private Room room;
+//	private Integer date;
 	
 	public Long getId() {
 		return id;
@@ -96,7 +95,6 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 	public Room getRoom() {
 		return room;
 	}
-
 
 	public void setRoom(Room room) {
 		this.room = room;
