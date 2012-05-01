@@ -78,73 +78,87 @@ public class ScheduleMainJPA {
 	}
 	
 	private void start() {
-		System.out.println("Start solving ...");
-		
-		this.solver.solve();
-		
-		Schedule schedule = (Schedule) solver.getBestSolution();
-		this.scoreDirector.setWorkingSolution(schedule);
-		this.scoreDirector.calculateScore();
-		
-		System.out.println( "Score: " + schedule.getScore() + ", Time: " + this.solver.getTimeMillisSpend() );
-        print(schedule);
-        
-        System.out.println("End solving ...");
-        
-    	System.out.println( "getScoreDetailList size:" + getScoreDetailList().size());
-		System.out.println( "Broken constrains list:" );
-		
-		for(ScoreDetail sd : getScoreDetailList()) {
-			System.out.println(sd);
-			System.out.println("=>"+sd.buildConstraintOccurrenceListText());
-		}
-
-		EntityManagerFactory emf = Persistence.createEntityManagerFactory("slrs");
-		EntityManager em = emf.createEntityManager();
-		
-		em.getTransaction().begin();
-		for(Lesson lesson : schedule.getLessonList()) {
-			kz.bee.kudos.lesson.Lesson kudosLesson = new kz.bee.kudos.lesson.Lesson();
-			Calendar cl = Calendar.getInstance();
-			cl.set(Calendar.DAY_OF_WEEK,lesson.getPeriod().getDay().getValue()+1);
-			RingOrder ring = em.find(RingOrder.class, lesson.getPeriod().getTime().getId());
-			StringTokenizer st = new StringTokenizer(ring.getBegin());
-			cl.set(Calendar.HOUR_OF_DAY, Integer.parseInt(st.nextToken(":")));
-			cl.set(Calendar.MINUTE, Integer.parseInt(st.nextToken(":")));
-			kudosLesson.setBegin(cl.getTime());
+		try {
+			System.out.println("Start solving ...");
 			
-			st = new StringTokenizer(ring.getEnd());
-			cl.set(Calendar.HOUR_OF_DAY, Integer.parseInt(st.nextToken(":")));
-			cl.set(Calendar.MINUTE, Integer.parseInt(st.nextToken(":")));
-			kudosLesson.setEnd(cl.getTime());
-			kudosLesson.setCourse(em.find(kz.bee.kudos.course.Course.class,lesson.getCourse().getId()));
-			kudosLesson.setRing(ring);
-			kudosLesson.setOrder(lesson.getPeriod().getTime().getValue());
-			kudosLesson.setStatus(Status.PLANNED);
-			kudosLesson.setTeacher(em.find(User.class, lesson.getCourse().getTeacher().getId()));
+			this.solver.solve();
 			
-			em.persist(kudosLesson);
+			Schedule schedule = (Schedule) solver.getBestSolution();
+			this.scoreDirector.setWorkingSolution(schedule);
+			this.scoreDirector.calculateScore();
+			
+			System.out.println( "Score: " + schedule.getScore() + ", Time: " + this.solver.getTimeMillisSpend() );
+	        print(schedule);
+	        
+	        System.out.println("End solving ...");
+	        
+	    	System.out.println( "getScoreDetailList size:" + getScoreDetailList().size());
+			System.out.println( "Broken constrains list:" );
+			
+			for(ScoreDetail sd : getScoreDetailList()) {
+				System.out.println(sd);
+				System.out.println("=>"+sd.buildConstraintOccurrenceListText());
+			}
+	
+			EntityManagerFactory emf = Persistence.createEntityManagerFactory("slrs");
+			EntityManager em = emf.createEntityManager();
+			
+			em.getTransaction().begin();
+			for(Lesson lesson : schedule.getLessonList()) {
+				kz.bee.kudos.lesson.Lesson kudosLesson = new kz.bee.kudos.lesson.Lesson();
+				Calendar cl = Calendar.getInstance();
+				cl.set(Calendar.DAY_OF_WEEK,lesson.getPeriod().getDay().getValue()+1);
+				RingOrder ring = em.find(RingOrder.class, lesson.getPeriod().getTime().getId());
+				StringTokenizer st = new StringTokenizer(ring.getBegin());
+				cl.set(Calendar.HOUR_OF_DAY, Integer.parseInt(st.nextToken(":")));
+				cl.set(Calendar.MINUTE, Integer.parseInt(st.nextToken(":")));
+				kudosLesson.setBegin(cl.getTime());
+				
+				st = new StringTokenizer(ring.getEnd());
+				cl.set(Calendar.HOUR_OF_DAY, Integer.parseInt(st.nextToken(":")));
+				cl.set(Calendar.MINUTE, Integer.parseInt(st.nextToken(":")));
+				kudosLesson.setEnd(cl.getTime());
+				kudosLesson.setCourse(em.find(kz.bee.kudos.course.Course.class,lesson.getCourse().getId()));
+				kudosLesson.setRing(ring);
+				kudosLesson.setOrder(lesson.getPeriod().getTime().getValue());
+				kudosLesson.setStatus(Status.PLANNED);
+				if( lesson.getCourse() == null ) {
+					System.out.println("lesson:"+lesson);
+					System.out.println("lesson id:"+lesson.getId());
+				}
+				
+				if( lesson.getCourse().getTeacher() == null ) {
+					System.out.println("course:"+lesson.getCourse());
+					System.out.println("course id:"+lesson.getCourse().getId());
+				}
+				kudosLesson.setTeacher(em.find(User.class, lesson.getCourse().getTeacher().getId()));
+				
+				em.persist(kudosLesson);
+			}
+			
+			em.getTransaction().commit();
+			System.out.println("THE END");
+			
+			
+	//		Schedule solution = new Schedule();
+	//		solution.setId(2L);
+	//		solution.setCourseList(schedule.getCourseList());
+	//		solution.setClazzList(schedule.getClazzList());
+	//		solution.setTeacherList(schedule.getTeacherList());
+	//		solution.setRoomList(schedule.getRoomList());
+	//		solution.setPeriodList(schedule.getPeriodList());
+	//		solution.setDayList(schedule.getDayList());
+	//		solution.setTimeList(schedule.getTimeList());
+	//		solution.setLessonList(schedule.getLessonList());
+	//		solution.setUnavailablePeriodConstraintList(schedule.getUnavailablePeriodConstraintList());
+	//		
+	//		ScheduleMain sm = new ScheduleMain();
+	//		sm.setPlanningProblem(solution);
+	//		sm.start();
 		}
-		
-		em.getTransaction().commit();
-		System.out.println("THE END");
-		
-		
-//		Schedule solution = new Schedule();
-//		solution.setId(2L);
-//		solution.setCourseList(schedule.getCourseList());
-//		solution.setClazzList(schedule.getClazzList());
-//		solution.setTeacherList(schedule.getTeacherList());
-//		solution.setRoomList(schedule.getRoomList());
-//		solution.setPeriodList(schedule.getPeriodList());
-//		solution.setDayList(schedule.getDayList());
-//		solution.setTimeList(schedule.getTimeList());
-//		solution.setLessonList(schedule.getLessonList());
-//		solution.setUnavailablePeriodConstraintList(schedule.getUnavailablePeriodConstraintList());
-//		
-//		ScheduleMain sm = new ScheduleMain();
-//		sm.setPlanningProblem(solution);
-//		sm.start();
+		catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private void setPlanningProblem() {
@@ -165,19 +179,26 @@ public class ScheduleMainJPA {
 		em.getTransaction().begin();
 		
 		
-		List<User> kudosTeachers = em.createQuery("select m.user from Membership m where m.group = :group and m.role = :role")
-									.setParameter("group", em.find(Group.class, "EDU-A-J-S118"))
-									.setParameter("role", em.find(Role.class, "TEACHER"))
-									.getResultList();
+		kz.bee.kudos.period.Period period = em.find(kz.bee.kudos.period.Period.class, 67162L);
+		School school = em.find(School.class, "EDU-A-J-S118");
+		
+//		List<User> kudosTeachers = em.createQuery("select m.user from Membership m where m.group = :group and m.role = :role")
+//									.setParameter("group", em.find(Group.class, "EDU-A-J-S118"))
+//									.setParameter("role", em.find(Role.class, "TEACHER"))
+//									.getResultList();
+		
+		List<User> kudosTeachers = em.createQuery("select distinct c.teacher from kz.bee.kudos.course.Course c where c.period = :period")
+				.setParameter("period", period)
+				.getResultList();
 		
 		List<Location> kudosRooms = em.createQuery("select l from Location l where l.school = :school")
-										.setParameter("school", em.find(School.class, "EDU-A-J-S118"))
+										.setParameter("school", school)
 										.getResultList();
 		
 		//282660
-		List<kz.bee.kudos.ou.Class> kudosClasses = em.createQuery("select c from kz.bee.kudos.ou.Class c where c.parent.parent = :group and c.period = :period and c.level in (9,10,11)")
+		List<kz.bee.kudos.ou.Class> kudosClasses = em.createQuery("select c from kz.bee.kudos.ou.Class c where c.parent.parent = :group and c.period = :period and c.level in (5,6,7,8,9,10,11)")
 													.setParameter("group", em.find(Group.class, "EDU-A-J-S118"))
-													.setParameter("period", em.find(kz.bee.kudos.period.Period.class, 67162L))
+													.setParameter("period", period)
 													.getResultList();
 		
 		//282908
@@ -332,70 +353,75 @@ public class ScheduleMainJPA {
 	}
 	
 	public void print( Schedule schedule ) {
-		List<Period> periodList = schedule.getPeriodList();
-		List<Class> clazzList = schedule.getClazzList();
-		List<Lesson> lessonList = schedule.getLessonList();
-		List<Room> roomList = schedule.getRoomList();
-		
-//		String [][]table = new String[periodList.size()][roomList.size()];
-		String [][]table = new String[periodList.size()][clazzList.size()];
-		
-		for(int i = 0; i < periodList.size(); i++) {
-//			for(int j = 0; j < roomList.size(); j++) {
-			for(int j = 0; j < clazzList.size(); j++) {
-				for( Lesson l : lessonList ) {
-//					if( periodList.get(i) == l.getPeriod() && roomList.get(j) == l.getRoom() ) {
-//						if(table[i][j] == null) table[i][j] = "";
-//						table[i][j] += "Course [#" + l.getCourse().getId() + "]<br/>Teacher[" + l.getCourse().getTeacher().getId() + "]<br/>Class[" 
-//													+ l.getCourse().getClazz().getId()+", level=" + l.getCourse().getClazz().geteLevel() + "];";
-//					}
-					if( periodList.get(i) == l.getPeriod() && clazzList.get(j) == l.getCourse().getClazz() ) {
-						if(table[i][j] == null) table[i][j] = "";
-						table[i][j] += "Course [#" + l.getCourse().getId() + "]<br/>Teacher[" + l.getCourse().getTeacher().getId() + "]<br/>Room[" 
-													+ l.getCourse().getRoom()+", level=" + l.getCourse().getClazz().geteLevel() + "];";
+		try {
+			List<Period> periodList = schedule.getPeriodList();
+			List<Class> clazzList = schedule.getClazzList();
+			List<Lesson> lessonList = schedule.getLessonList();
+			List<Room> roomList = schedule.getRoomList();
+			
+	//		String [][]table = new String[periodList.size()][roomList.size()];
+			String [][]table = new String[periodList.size()][clazzList.size()];
+			
+			for(int i = 0; i < periodList.size(); i++) {
+	//			for(int j = 0; j < roomList.size(); j++) {
+				for(int j = 0; j < clazzList.size(); j++) {
+					for( Lesson l : lessonList ) {
+	//					if( periodList.get(i) == l.getPeriod() && roomList.get(j) == l.getRoom() ) {
+	//						if(table[i][j] == null) table[i][j] = "";
+	//						table[i][j] += "Course [#" + l.getCourse().getId() + "]<br/>Teacher[" + l.getCourse().getTeacher().getId() + "]<br/>Class[" 
+	//													+ l.getCourse().getClazz().getId()+", level=" + l.getCourse().getClazz().geteLevel() + "];";
+	//					}
+						if( periodList.get(i) == l.getPeriod() && clazzList.get(j) == l.getCourse().getClazz() ) {
+							if(table[i][j] == null) table[i][j] = "";
+							table[i][j] += "Course [#" + l.getCourse().getId() + "]<br/>Teacher[" + l.getCourse().getTeacher().getId() + "]<br/>Room[" 
+														+ l.getCourse().getRoom()+", level=" + l.getCourse().getClazz().geteLevel() + "];";
+						}
 					}
 				}
 			}
-		}
-		
-//		String htmlTable = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><table border='1'><tr><td>Period\\Rooms</td>";
-		String htmlTable = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><table border='1'><tr><td>Period\\Classes</td>";
-		
-//		for(int i = 0; i < roomList.size(); i++ ) {
-//			htmlTable += "<td> Room[" + roomList.get(i).getNumber()+"]</td>";
-//		}
-		for(int i = 0; i < clazzList.size(); i++ ) {
-			htmlTable += "<td> class[" + clazzList.get(i).getId()+"]</td>";
-		}
-		htmlTable += "</tr>";
-		
-		for( int i = 0; i < table.length; i++) {
-			htmlTable += "<tr><td>" + periodList.get(i).getDay().getValue() + " : " + periodList.get(i).getTime().getValue() + "</td>";
 			
-			for(int j = 0; j < table[i].length; j++) {
-				htmlTable += "<td>" + table[i][j] + "</td>";
+	//		String htmlTable = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><table border='1'><tr><td>Period\\Rooms</td>";
+			String htmlTable = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><table border='1'><tr><td>Period\\Classes</td>";
+			
+	//		for(int i = 0; i < roomList.size(); i++ ) {
+	//			htmlTable += "<td> Room[" + roomList.get(i).getNumber()+"]</td>";
+	//		}
+			for(int i = 0; i < clazzList.size(); i++ ) {
+				htmlTable += "<td> class[" + clazzList.get(i).getId()+"]</td>";
 			}
 			htmlTable += "</tr>";
+			
+			for( int i = 0; i < table.length; i++) {
+				htmlTable += "<tr><td>" + periodList.get(i).getDay().getValue() + " : " + periodList.get(i).getTime().getValue() + "</td>";
+				
+				for(int j = 0; j < table[i].length; j++) {
+					htmlTable += "<td>" + table[i][j] + "</td>";
+				}
+				htmlTable += "</tr>";
+			}
+			
+			htmlTable += "</table></body></html>";
+			System.out.println("===========================================================");
+			for(Lesson l : lessonList) {
+				System.out.println(l);
+			}
+			System.out.println("===========================================================");
+			
+			try {
+				FileWriter fstream = new FileWriter("/Users/nurlan/Dev/diploma/timetable.html");
+				BufferedWriter out = new BufferedWriter(fstream);
+				out.write(htmlTable);
+				out.close();
+			} catch (Exception e) {
+				System.err.println("Error: " + e.getMessage());
+			}
+			
+			System.out.println( "Score: " + schedule.getScore() + ", Time: " + this.solver.getTimeMillisSpend() );
+			System.out.println(htmlTable);
 		}
-		
-		htmlTable += "</table></body></html>";
-		System.out.println("===========================================================");
-		for(Lesson l : lessonList) {
-			System.out.println(l);
+		catch(Exception e) {
+			e.printStackTrace();
 		}
-		System.out.println("===========================================================");
-		
-		try {
-			FileWriter fstream = new FileWriter("/Users/nurlan/Dev/diploma/timetable.html");
-			BufferedWriter out = new BufferedWriter(fstream);
-			out.write(htmlTable);
-			out.close();
-		} catch (Exception e) {
-			System.err.println("Error: " + e.getMessage());
-		}
-		
-		System.out.println( "Score: " + schedule.getScore() + ", Time: " + this.solver.getTimeMillisSpend() );
-		System.out.println(htmlTable);
 	}
 	
 	public List<ScoreDetail> getScoreDetailList() {

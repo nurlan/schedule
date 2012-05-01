@@ -40,51 +40,65 @@ rule "twoClassSameTimeSameRoom"
 							$lesson1, $lesson2));
 end
 */
+
 //#
-// 1 class(wx_group) in 2 lessons at the same period
+// A different classes(two wx_group child classes) in the same period with different lessons.
 //#
-rule "oneClassInTwoLessonsInOnePeriod"
+rule "wxGroupChildClassesInSamePeriodWithDiffLessons"
 	when
 		$lesson1 : Lesson($id : id, $period : period, $wxGroupName : course.clazz.wxGroupName, $clazz : course.clazz, $courseName : course.name ) 
 		$lesson2 : Lesson(id != $id, period == $period, course.clazz.wxGroupName == $wxGroupName, course.clazz != $clazz, course.name != $courseName ) 
 	then
-		insertLogical(new IntConstraintOccurrence("oneClassInTwoLessonsInOnePeriod", 
+		insertLogical(new IntConstraintOccurrence("wxGroupChildClassesInSamePeriodWithDiffLessons", 
 							ConstraintType.NEGATIVE_HARD, 1,
 							$lesson1, $lesson2));
 end
 
-rule "oneClassInTwoLessonsInOnePeriod1"
+//#
+// A same class(wx_group and all its child classes) in the same period with diffrent lessons.
+//#
+rule "wxGroupChildClassInSamePeriodWithDiffLessons"
 	when
 		$lesson1 : Lesson($id : id, $period : period, $wxGroupName : course.clazz.wxGroupName, $clazz : course.clazz, $courseName : course.name ) 
 		$lesson2 : Lesson(id != $id, period == $period, course.clazz.wxGroupName == $wxGroupName, course.clazz == $clazz, course.name != $courseName ) 
 	then
-		insertLogical(new IntConstraintOccurrence("oneClassInTwoLessonsInOnePeriod1", 
+		insertLogical(new IntConstraintOccurrence("wxGroupChildClassInSamePeriodWithDiffLessons", 
 							ConstraintType.NEGATIVE_HARD, 1,
 							$lesson1, $lesson2));
 end
 
-rule "oneClassInTwoLessonsInOnePeriod2"
+//#
+// Lessons with a same class in the same period.
+//#
+rule "lessonsWithSameClassInSamePeriod"
 	when
 		$lesson1 : Lesson($id : id, $period : period, $clazz : course.clazz ) 
 		$lesson2 : Lesson(id != $id, period == $period, course.clazz == $clazz ) 
 	then
-		insertLogical(new IntConstraintOccurrence("oneClassInTwoLessonsInOnePeriod2", 
+		insertLogical(new IntConstraintOccurrence("lessonsWithSameClassInSamePeriod", 
 							ConstraintType.NEGATIVE_HARD, 1,
 							$lesson1, $lesson2));
 end
-/*
-rule "oneClassInTwoLessonsInOnePeriod3"
+
+
+//#
+// Repeated lessons in the same day(day is the attribute of the Period).
+//#
+rule "repeatedLessonsInSameDay"
 	when
-		$lesson1 : Lesson($id : id, $day : date, $course : course ) 
-		$lesson2 : Lesson(id != $id, date == $day, course == $course ) 
+		$lesson1 : Lesson($id : id, period != null, $period : period, $course : course ) 
+		$lesson2 : Lesson(id != $id, period != null, period.day == $period.day, course == $course )
 	then
-		insertLogical(new IntConstraintOccurrence("oneClassInTwoLessonsInOnePeriod3", 
+		insertLogical(new IntConstraintOccurrence("repeatedLessonsInSameDay", 
 							ConstraintType.NEGATIVE_HARD, 2,
 							$lesson1, $lesson2));
 end
-*/
 
-rule "noMoreThanTwoSameLessonsInOneDay"
+
+//#
+// Collecting lessons of divided classes to a same period
+//#
+rule "dividedClassLessonsInSamePeriod"
 	when
 		$lesson : Lesson($id : id, $period : period, $clazz : course.clazz)
         $lessonCount : Number(intValue > 1) from accumulate(
@@ -92,20 +106,20 @@ rule "noMoreThanTwoSameLessonsInOneDay"
             count($lesson2)
         )
 	then
-		insertLogical(new IntConstraintOccurrence("noMoreThanTwoSameLessonsInOneDay", 
+		insertLogical(new IntConstraintOccurrence("dividedClassLessonsInSamePeriod", 
 							ConstraintType.NEGATIVE_HARD, 2,
 							$lesson, $lessonCount));
 end
 
 //#
-// Two lessons at the same time or same room with a same teacher.
+// Lessons with a same teacher in the same period.
 //#
-rule "twoLessonSameTimeSameTeacher"
+rule "lessonsWithSameTeacherInSamePeriod"
 	when
 		$lesson1 : Lesson($id : id, $period : period, $teacher : course.teacher)
 		$lesson2 : Lesson(id != $id, period == $period, course.teacher == $teacher)
 	then
-		insertLogical(new IntConstraintOccurrence("twoLessonSameTimeSameTeacher",
+		insertLogical(new IntConstraintOccurrence("lessonsWithSameTeacherInSamePeriod",
 							ConstraintType.NEGATIVE_HARD, 1, 
 							$lesson1, $lesson2));
 end
