@@ -1,10 +1,12 @@
-package kz.bee.drools.planner.schedule.main;
+package kz.bee.drools.planner.schedule.validate;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import kz.bee.drools.planner.schedule.domain.Lesson;
 
 import org.apache.commons.lang.builder.CompareToBuilder;
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -106,6 +108,21 @@ public class ScoreDetail implements Comparable<ScoreDetail> {
         return ruleId + "/" + constraintType + " (" + getOccurrenceSize() + ") = " + scoreTotal;
     }
 
+    public List<Object[]> buildConstraintOccurrenceList() {
+        List<ConstraintOccurrence> constraintOccurrenceList = new ArrayList(constraintOccurrenceSet);
+        Collections.sort(constraintOccurrenceList);
+        List<Object[]> list = new ArrayList<Object[]>();
+        for (ConstraintOccurrence constraintOccurrence : constraintOccurrenceList) {
+        	Object[] object = new Object[4];
+        	object[0] = constraintOccurrence.getRuleId();
+        	object[1] = constraintOccurrence.getConstraintType().toString();
+        	object[2] = ((Lesson)((Object[])constraintOccurrence.getCauses())[0]).getId();
+        	object[3] = ((Lesson)((Object[])constraintOccurrence.getCauses())[1]).getId();
+        	list.add(object);
+        }
+        return list;
+    }
+
     public String buildConstraintOccurrenceListText() {
         List<ConstraintOccurrence> constraintOccurrenceList = new ArrayList(constraintOccurrenceSet);
         Collections.sort(constraintOccurrenceList);
@@ -115,5 +132,4 @@ public class ScoreDetail implements Comparable<ScoreDetail> {
         }
         return text.toString();
     }
-
 }

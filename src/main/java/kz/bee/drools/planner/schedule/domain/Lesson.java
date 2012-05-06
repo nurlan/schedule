@@ -21,16 +21,18 @@ import org.drools.planner.api.domain.variable.ValueRangeType;
 @PlanningEntity(difficultyWeightFactoryClass=LessonDifficultyWeightFactory.class)
 public class Lesson implements Serializable, Comparable<Lesson>{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6993119950253101764L;
+	
+	
 	private Long id;
-//	private Long courseId;
-//	private String teacherId;
-//	private Long classId;
 	private Course course;
 	private boolean pinned;
 	
 	private Period period;
 	private Room room;
-//	private Integer date;
 	
 	public Long getId() {
 		return id;
@@ -39,35 +41,6 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 	public void setId(Long id) {
 		this.id = id;
 	}
-
-//	public Long getCourseId() {
-//		return courseId;
-//	}
-//
-//
-//	public void setCourseId(Long courseId) {
-//		this.courseId = courseId;
-//	}
-//
-//	
-//	public String getTeacherId() {
-//		return teacherId;
-//	}
-//
-//
-//	public void setTeacherId(String teacherId) {
-//		this.teacherId = teacherId;
-//	}
-//
-//
-//	public Long getClassId() {
-//		return classId;
-//	}
-//
-//
-//	public void setClassId(Long classId) {
-//		this.classId = classId;
-//	}
 
 	public Course getCourse() {
 		return course;
@@ -113,9 +86,6 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 		Lesson lesson = new Lesson();
 		
 		lesson.setId(id);
-//		lesson.setCourseId(courseId);
-//		lesson.setTeacherId(teacherId);
-//		lesson.setClassId(classId);
 		lesson.setCourse(course);
 		lesson.setPeriod(period);
 		lesson.setRoom(room);
@@ -126,9 +96,6 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 	public int compareTo(Lesson other) {
 		return new CompareToBuilder()
 			.append(id, other.id)
-//			.append(courseId, other.courseId)
-//			.append(teacherId, other.teacherId)
-//			.append(classId, other.classId)
 			.append(course, other.course)
 			.append(period, other.period)
 			.append(room, other.room)
@@ -148,9 +115,6 @@ public class Lesson implements Serializable, Comparable<Lesson>{
         	Lesson other = (Lesson) o;
             return new EqualsBuilder()
                     .append(id, other.id)
-//                    .append(courseId, other.courseId)
-//                    .append(teacherId, other.teacherId)
-//                    .append(classId, other.classId)
                     .append(course, other.course)
 					.append(period, other.period)
 					.append(room, other.room)
@@ -168,7 +132,6 @@ public class Lesson implements Serializable, Comparable<Lesson>{
     public int solutionHashCode() {
         return new HashCodeBuilder()
                 .append(id)
-//                .append(courseId)
                 .append(course)
 				.append(period)
 				.append(room)

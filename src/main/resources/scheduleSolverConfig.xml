@@ -12,7 +12,7 @@
 	<termination>
 <!-- 		<terminationCompositionStyle>OR</terminationCompositionStyle> -->
 <!--         <maximumStepCount>1550</maximumStepCount> -->
-        <scoreAttained>-14hard/0soft</scoreAttained>
+        <scoreAttained>-10hard/0soft</scoreAttained>
 	</termination>
 
 	<constructionHeuristic>

@@ -1,7 +1,6 @@
 package kz.bee.drools.planner.schedule.domain;
 
 import java.io.Serializable;
-import java.util.List;
 
 import org.apache.commons.lang.builder.CompareToBuilder;
 
@@ -11,6 +10,12 @@ import org.apache.commons.lang.builder.CompareToBuilder;
  */
 public class Class implements Serializable, Comparable<Class> {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2760804358431340961L;
+	
+	
 	private Long id;
 	private Room room;
 	//private String ringGroup;

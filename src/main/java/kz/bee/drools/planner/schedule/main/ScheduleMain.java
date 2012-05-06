@@ -14,6 +14,7 @@ import kz.bee.drools.planner.schedule.domain.Lesson;
 import kz.bee.drools.planner.schedule.domain.Period;
 import kz.bee.drools.planner.schedule.domain.Room;
 import kz.bee.drools.planner.schedule.solution.Schedule;
+import kz.bee.drools.planner.schedule.validate.ScoreDetail;
 
 import org.drools.ClassObjectFilter;
 import org.drools.WorkingMemory;

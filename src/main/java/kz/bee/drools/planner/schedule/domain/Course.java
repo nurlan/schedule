@@ -10,6 +10,12 @@ import org.apache.commons.lang.builder.CompareToBuilder;
  */
 public class Course implements Serializable, Comparable<Course> {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6887671375851529747L;
+	
+	
 	private Long id;
 	private String name;
 	private int lessonCount;
