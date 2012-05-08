@@ -6,6 +6,7 @@ import org.drools.planner.core.score.constraint.IntConstraintOccurrence;
 import org.drools.planner.core.score.constraint.ConstraintType;
 
 import kz.bee.drools.planner.schedule.domain.Lesson;
+import kz.bee.drools.planner.schedule.domain.School;
 import kz.bee.drools.planner.schedule.domain.UnavailablePeriodConstraint;
 
 global HardAndSoftScoreHolder scoreHolder;
@@ -46,6 +47,7 @@ end
 //#
 rule "wxGroupChildClassesInSamePeriodWithDiffLessons"
 	when
+		School( type in ("School", "College") )
 		$lesson1 : Lesson($id : id, $period : period, $wxGroupName : course.clazz.wxGroupName, $clazz : course.clazz, $courseName : course.name ) 
 		$lesson2 : Lesson(id != $id, period == $period, course.clazz.wxGroupName == $wxGroupName, course.clazz != $clazz, course.name != $courseName ) 
 	then
@@ -59,6 +61,7 @@ end
 //#
 rule "wxGroupChildClassInSamePeriodWithDiffLessons"
 	when
+	 	School( type in ("School", "College") )
 		$lesson1 : Lesson($id : id, $period : period, $wxGroupName : course.clazz.wxGroupName, $clazz : course.clazz, $courseName : course.name ) 
 		$lesson2 : Lesson(id != $id, period == $period, course.clazz.wxGroupName == $wxGroupName, course.clazz == $clazz, course.name != $courseName ) 
 	then
@@ -72,6 +75,7 @@ end
 //#
 rule "lessonsWithSameClassInSamePeriod"
 	when
+		School( type in ("School", "College") )
 		$lesson1 : Lesson($id : id, $period : period, $clazz : course.clazz ) 
 		$lesson2 : Lesson(id != $id, period == $period, course.clazz == $clazz ) 
 	then
@@ -86,6 +90,7 @@ end
 //#
 rule "repeatedLessonsInSameDay"
 	when
+		School( type in ("School", "College") )
 		$lesson1 : Lesson($id : id, period != null, $period : period, $course : course ) 
 		$lesson2 : Lesson(id != $id, period != null, period.day == $period.day, course == $course )
 	then
@@ -100,6 +105,7 @@ end
 //#
 rule "dividedClassLessonsInSamePeriod"
 	when
+		School( type in ("School","College") )
 		$lesson : Lesson($id : id, $period : period, $clazz : course.clazz)
         $lessonCount : Number(intValue > 1) from accumulate(
             $lesson2 : Lesson(id != $id, period == $period, course.clazz == $clazz)
@@ -111,11 +117,13 @@ rule "dividedClassLessonsInSamePeriod"
 							$lesson, $lessonCount));
 end
 
+
 //#
 // Lessons with a same teacher in the same period.
 //#
 rule "lessonsWithSameTeacherInSamePeriod"
 	when
+		School( type in ("School", "College") )
 		$lesson1 : Lesson($id : id, $period : period, $teacher : course.teacher)
 		$lesson2 : Lesson(id != $id, period == $period, course.teacher == $teacher)
 	then
@@ -123,6 +131,21 @@ rule "lessonsWithSameTeacherInSamePeriod"
 							ConstraintType.NEGATIVE_HARD, 1, 
 							$lesson1, $lesson2));
 end
+
+//#
+// Sum of Lesson.duration must not exceed Period.duration.
+//#
+rule "lessonsDurationSumLePeriodDuration"
+	when
+		School( type == "College" )
+		$lesson : Lesson(period != null, $periodTimeValue : period.time.value, $duration : timeValue)
+		eval($duration > $periodTimeValue)
+	then
+		insertLogical(new IntConstraintOccurrence("lessonsDurationSumLePeriodDuration",
+							ConstraintType.NEGATIVE_HARD, 1, 
+							$lesson, $periodTimeValue));
+end
+
 /*
 // Availabilities: Each lesson in a period unavailable for that course.
 /*rule "unavailablePeriodConstraint"

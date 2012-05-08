@@ -116,7 +116,7 @@ public class ScheduleMain {
 		htmlTable += "</tr>";
 		
 		for( int i = 0; i < table.length; i++) {
-			htmlTable += "<tr><td>" + periodList.get(i).getDay().getValue() + " : " + periodList.get(i).getTime().getValue() + "</td>";
+			htmlTable += "<tr><td>" + periodList.get(i).getDay().getValue() + " : " + periodList.get(i).getTime().getOrder() + "</td>";
 			
 			for(int j = 0; j < table[i].length; j++) {
 				htmlTable += "<td>" + table[i][j] + "</td>";

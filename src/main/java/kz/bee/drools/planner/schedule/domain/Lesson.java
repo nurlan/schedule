@@ -29,6 +29,8 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 	
 	private Long id;
 	private Course course;
+	private String lessonType;
+	private int timeValue;
 	private boolean pinned;
 	
 	private Period period;
@@ -73,6 +75,21 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 		this.room = room;
 	}
 
+	public String getLessonType() {
+		return lessonType;
+	}
+
+	public void setLessonType(String lessonType) {
+		this.lessonType = lessonType;
+	}
+
+	public int getTimeValue() {
+		return timeValue;
+	}
+
+	public void setTimeValue(int timeValue) {
+		this.timeValue = timeValue;
+	}
 
 	public boolean isPinned() {
 		return pinned;
@@ -87,6 +104,9 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 		
 		lesson.setId(id);
 		lesson.setCourse(course);
+		lesson.setLessonType(lessonType);
+		lesson.setTimeValue(timeValue);
+		lesson.setPinned(pinned);
 		lesson.setPeriod(period);
 		lesson.setRoom(room);
 		
@@ -97,6 +117,9 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 		return new CompareToBuilder()
 			.append(id, other.id)
 			.append(course, other.course)
+			.append(lessonType, other.lessonType)
+			.append(timeValue, other.timeValue)
+			.append(pinned, other.pinned)
 			.append(period, other.period)
 			.append(room, other.room)
 			.toComparison();
@@ -116,6 +139,9 @@ public class Lesson implements Serializable, Comparable<Lesson>{
             return new EqualsBuilder()
                     .append(id, other.id)
                     .append(course, other.course)
+                    .append(lessonType, other.lessonType)
+                    .append(timeValue, other.timeValue)
+                    .append(pinned, other.pinned)
 					.append(period, other.period)
 					.append(room, other.room)
                     .isEquals();
@@ -133,15 +159,19 @@ public class Lesson implements Serializable, Comparable<Lesson>{
         return new HashCodeBuilder()
                 .append(id)
                 .append(course)
+                .append(lessonType)
+                .append(timeValue)
+                .append(pinned)
 				.append(period)
 				.append(room)
                 .toHashCode();
     }
 
-	
-    @Override
+	@Override
 	public String toString() {
-		return "Lesson [id=" + id + ", course=" + course + ", period=" + period
-				+ ", room=" + room + "]";
-	}	
+		return "Lesson [id=" + id + ", course=" + course + ", lessonType="
+				+ lessonType + ", timeValue=" + timeValue + ", pinned=" + pinned
+				+ ", period=" + period + ", room=" + room + "]";
+	}
+    
 }

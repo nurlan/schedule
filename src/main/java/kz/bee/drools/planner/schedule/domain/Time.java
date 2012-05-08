@@ -11,6 +11,7 @@ import org.apache.commons.lang.builder.CompareToBuilder;
 public class Time implements Serializable, Comparable<Time> {
 
 	private Long id;
+	private int order;
 	private int value;
 	
 	public Long getId() {
@@ -19,6 +20,14 @@ public class Time implements Serializable, Comparable<Time> {
 	public void setId(Long id) {
 		this.id = id;
 	}
+	
+	public int getOrder() {
+		return order;
+	}
+	public void setOrder(int order) {
+		this.order = order;
+	}
+	
 	public int getValue() {
 		return value;
 	}
@@ -26,15 +35,17 @@ public class Time implements Serializable, Comparable<Time> {
 		this.value = value;
 	}
 	
+	
 	@Override
 	public String toString() {
-		return "Time [id=" + id + ", value=" + value + "]";
+		return "Time [id=" + id + ", order=" + order + ", value=" + value + "]";
 	}
 	
 	public int compareTo(Time other) {
 		return new CompareToBuilder()
-	        .append(value, other.value)
 	        .append(id, other.id)
+	        .append(order, other.order)
+	        .append(value, other.value)
 	        .toComparison();
 	}
 }

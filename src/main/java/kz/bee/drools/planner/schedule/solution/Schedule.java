@@ -11,6 +11,7 @@ import kz.bee.drools.planner.schedule.domain.Day;
 import kz.bee.drools.planner.schedule.domain.Lesson;
 import kz.bee.drools.planner.schedule.domain.Period;
 import kz.bee.drools.planner.schedule.domain.Room;
+import kz.bee.drools.planner.schedule.domain.School;
 import kz.bee.drools.planner.schedule.domain.Teacher;
 import kz.bee.drools.planner.schedule.domain.Time;
 import kz.bee.drools.planner.schedule.domain.UnavailablePeriodConstraint;
@@ -29,6 +30,7 @@ import org.drools.planner.core.solution.Solution;
 public class Schedule implements Solution<HardAndSoftScore> {
 
 	private Long id;
+	private List<School> schoolList;
 	private List<Course> courseList;
 	private List<Class> clazzList;
 	private List<Teacher> teacherList;
@@ -48,6 +50,14 @@ public class Schedule implements Solution<HardAndSoftScore> {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+	
+	public List<School> getSchoolList() {
+		return schoolList;
+	}
+
+	public void setSchoolList(List<School> schoolList) {
+		this.schoolList = schoolList;
 	}
 
 	public List<Course> getCourseList() {
@@ -139,6 +149,7 @@ public class Schedule implements Solution<HardAndSoftScore> {
 	
 	public Collection<? extends Object> getProblemFacts() {
 		List<Object> facts =  new ArrayList<Object>();
+		facts.addAll(schoolList);
 		facts.addAll(courseList);
 		facts.addAll(clazzList);
 		facts.addAll(teacherList);
@@ -158,6 +169,7 @@ public class Schedule implements Solution<HardAndSoftScore> {
 		Schedule clone = new Schedule();
 		
 		clone.id = id;
+		clone.schoolList = schoolList;
 		clone.courseList = courseList; 
 		clone.clazzList = clazzList;
 		clone.teacherList = teacherList;
