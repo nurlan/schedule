@@ -22,7 +22,7 @@ public class LessonSwapMoveFactory extends CachedMoveFactory {
             Lesson leftLecture = leftIt.next();
             for (ListIterator<Lesson> rightIt = lectureList.listIterator(leftIt.nextIndex()); rightIt.hasNext();) {
                 Lesson rightLecture = rightIt.next();
-                if (!leftLecture.getCourse().equals(rightLecture.getCourse())) {
+                if (!leftLecture.getCourse().equals(rightLecture.getCourse())) { //TODO Semi-locked feature should be implemented here
                     moveList.add(new LessonSwapMove(leftLecture, rightLecture));
                 }
             }

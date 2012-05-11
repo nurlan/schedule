@@ -5,6 +5,7 @@ import org.drools.planner.core.score.buildin.hardandsoft.HardAndSoftScoreHolder;
 import org.drools.planner.core.score.constraint.IntConstraintOccurrence;
 import org.drools.planner.core.score.constraint.ConstraintType;
 
+import kz.bee.drools.planner.schedule.domain.Class;
 import kz.bee.drools.planner.schedule.domain.Lesson;
 import kz.bee.drools.planner.schedule.domain.School;
 import kz.bee.drools.planner.schedule.domain.UnavailablePeriodConstraint;
@@ -146,6 +147,27 @@ rule "lessonsDurationSumLePeriodDuration"
 							$lesson, $periodTimeValue));
 end
 
+//#
+// 341. Максимально допустимое количество занятий в предшкольных классах не более четырех 
+// продолжительностью 25 – 30 минут. Перерывы между занятиями должны быть не менее 10 минут.
+//#
+rule "beforeSchoolClassesMustHaveMaxFourLessonsInOneDay"
+	when
+		School( type == "School" )
+		$clazz : Class( level == 0, $wxGroupName : wxGroupName)
+		$lesson : Lesson(period != null, course.clazz.wxGroupName == $wxGroupName, $period : period )
+		
+		$lessonCount : Number(intValue > 4) from accumulate(
+            $lesson2 : Lesson(period !=null, period.day == $period.day, course.clazz.wxGroupName == $wxGroupName)
+            count($lesson2)
+        )
+	then
+		insertLogical(new IntConstraintOccurrence("beforeSchoolClassesMustHaveMaxFourLessonsInOneDay",
+							ConstraintType.NEGATIVE_HARD, 10, 
+							$clazz, $lesson));
+end
+
+
 /*
 // Availabilities: Each lesson in a period unavailable for that course.
 /*rule "unavailablePeriodConstraint"
@@ -162,7 +184,24 @@ end
 // Soft constraints
 // ############################################################################
 
-
+//#
+// 338. Проведение сдвоенных уроков в начальной школе не допускается. 
+// Для учащихся 5 – 9 классов сдвоенные уроки допускаются только для проведения 
+// лабораторных, контрольных работ, уроков труда, физкультуры целевого назначения
+// (лыжи, плавание). В 10 – 11 (12) классах допускается проведение сдвоенных 
+// уроков по основным и профильным предметам. 
+//#
+rule "repeatedLessonsInSameDayInSequentialOrder"
+	when
+		School( type == "School" )
+		$lesson1 : Lesson($id : id, period != null, $period1 : period, $order1 : period.time.order, $course : course ) 
+		$lesson2 : Lesson(id != $id, period != null, period.day == $period1.day, course == $course, $order2 : period.time.order)
+		eval( ($order1 - $order2 == 1) || ($order1 - $order2 == -1))
+	then
+		insertLogical(new IntConstraintOccurrence("repeatedLessonsInSameDayInSequentialOrder", 
+							ConstraintType.POSITIVE, 10,
+							$lesson1, $lesson2));
+end
 
 // ############################################################################
 // Calculate score

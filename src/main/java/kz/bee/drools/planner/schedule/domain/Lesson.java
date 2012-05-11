@@ -29,6 +29,7 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 	
 	private Long id;
 	private Course course;
+	private Teacher teacher;
 	private String lessonType;
 	private int timeValue;
 	private boolean pinned;
@@ -51,6 +52,14 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 
 	public void setCourse(Course course) {
 		this.course = course;
+	}
+
+	public Teacher getTeacher() {
+		return teacher;
+	}
+
+	public void setTeacher(Teacher teacher) {
+		this.teacher = teacher;
 	}
 
 	@PlanningVariable(strengthWeightFactoryClass=PeriodStrengthWeightFactory.class)
@@ -104,6 +113,7 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 		
 		lesson.setId(id);
 		lesson.setCourse(course);
+		lesson.setTeacher(teacher);
 		lesson.setLessonType(lessonType);
 		lesson.setTimeValue(timeValue);
 		lesson.setPinned(pinned);
@@ -117,6 +127,7 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 		return new CompareToBuilder()
 			.append(id, other.id)
 			.append(course, other.course)
+			.append(teacher, other.teacher)
 			.append(lessonType, other.lessonType)
 			.append(timeValue, other.timeValue)
 			.append(pinned, other.pinned)
@@ -139,6 +150,7 @@ public class Lesson implements Serializable, Comparable<Lesson>{
             return new EqualsBuilder()
                     .append(id, other.id)
                     .append(course, other.course)
+                    .append(teacher, other.teacher)
                     .append(lessonType, other.lessonType)
                     .append(timeValue, other.timeValue)
                     .append(pinned, other.pinned)
@@ -159,6 +171,7 @@ public class Lesson implements Serializable, Comparable<Lesson>{
         return new HashCodeBuilder()
                 .append(id)
                 .append(course)
+                .append(teacher)
                 .append(lessonType)
                 .append(timeValue)
                 .append(pinned)
@@ -169,9 +182,10 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 
 	@Override
 	public String toString() {
-		return "Lesson [id=" + id + ", course=" + course + ", lessonType="
-				+ lessonType + ", timeValue=" + timeValue + ", pinned=" + pinned
-				+ ", period=" + period + ", room=" + room + "]";
+		return "Lesson [id=" + id + ", course=" + course + ", teacher="
+				+ teacher + ", lessonType=" + lessonType + ", timeValue="
+				+ timeValue + ", pinned=" + pinned + ", period=" + period
+				+ ", room=" + room + "]";
 	}
     
 }

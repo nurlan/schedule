@@ -19,7 +19,7 @@ public class Course implements Serializable, Comparable<Course> {
 	private Long id;
 	private String name;
 	private int lessonCount;
-	private Teacher teacher;
+//	private Teacher teacher;
 	private Class clazz;
 	private Room room;
 	
@@ -52,14 +52,14 @@ public class Course implements Serializable, Comparable<Course> {
 	}
 
 
-	public Teacher getTeacher() {
-		return teacher;
-	}
-
-
-	public void setTeacher(Teacher teacher) {
-		this.teacher = teacher;
-	}
+//	public Teacher getTeacher() {
+//		return teacher;
+//	}
+//
+//
+//	public void setTeacher(Teacher teacher) {
+//		this.teacher = teacher;
+//	}
 
 
 	public Class getClazz() {
@@ -82,12 +82,10 @@ public class Course implements Serializable, Comparable<Course> {
 	}
 
 
-
 	@Override
 	public String toString() {
-		return "Course [id=" + id + ", name=" + name
-				+ ", lessonCount=" + lessonCount + ", teacher=" + teacher
-				+ ", clazz=" + clazz + ", room=" + room + "]";
+		return "Course [id=" + id + ", name=" + name + ", lessonCount="
+				+ lessonCount + ", clazz=" + clazz + ", room=" + room + "]";
 	}
 
 
@@ -96,7 +94,7 @@ public class Course implements Serializable, Comparable<Course> {
 			.append(id, other.id)
 			.append(name, other.name)
 			.append(lessonCount, other.lessonCount)
-			.append(teacher, other.teacher)
+//			.append(teacher, other.teacher)
 			.append(clazz, other.clazz)
 			.append(room, other.room)
 			.toComparison();

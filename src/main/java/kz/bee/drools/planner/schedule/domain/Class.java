@@ -20,7 +20,7 @@ public class Class implements Serializable, Comparable<Class> {
 	private Room room;
 	//private String ringGroup;
 	private String wxGroupName;
-	private int eLevel;
+	private int level;
 	
 	public Long getId() {
 		return id;
@@ -42,26 +42,26 @@ public class Class implements Serializable, Comparable<Class> {
 //		this.ringGroup = ringGroup;
 //	}
 
-	public int geteLevel() {
-		return eLevel;
+	public int getLevel() {
+		return level;
 	}
-	public void seteLevel(int eLevel) {
-		this.eLevel = eLevel;
+	public void setLevel(int level) {
+		this.level = level;
 	}
 	
 	public String getWxGroupName() {
 		return wxGroupName;
 	}
+	
 	public void setWxGroupName(String wxGroupName) {
 		this.wxGroupName = wxGroupName;
 	}
 
+
 	@Override
 	public String toString() {
-		return "Class [id=" + id + ", room=" + room //+ ", ringGroup="
-//				+ ringGroup + "]";
-				+ ", wxGroupName=" + wxGroupName
-				+ ", eLevel=" + eLevel;
+		return "Class [id=" + id + ", room=" + room + ", wxGroupName="
+				+ wxGroupName + ", level=" + level + "]";
 	}
 
 	public int compareTo(Class other) {
@@ -70,7 +70,7 @@ public class Class implements Serializable, Comparable<Class> {
 			.append(room, other.room)
 //			.append(ringGroup, other.ringGroup)
 			.append(wxGroupName, other.wxGroupName)
-			.append(eLevel, other.eLevel)
+			.append(level, other.level)
 			.toComparison();
 	}
 	
