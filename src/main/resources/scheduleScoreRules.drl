@@ -125,8 +125,8 @@ end
 rule "lessonsWithSameTeacherInSamePeriod"
 	when
 		School( type in ("School", "College") )
-		$lesson1 : Lesson($id : id, $period : period, $teacher : course.teacher)
-		$lesson2 : Lesson(id != $id, period == $period, course.teacher == $teacher)
+		$lesson1 : Lesson($id : id, $period : period, $teacher : teacher)
+		$lesson2 : Lesson(id != $id, period == $period, teacher == $teacher)
 	then
 		insertLogical(new IntConstraintOccurrence("lessonsWithSameTeacherInSamePeriod",
 							ConstraintType.NEGATIVE_HARD, 1, 
