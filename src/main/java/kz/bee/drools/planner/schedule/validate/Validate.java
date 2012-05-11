@@ -32,6 +32,11 @@ public class Validate {
 		this.score = this.scoreDirector.calculateScore();
 	}
 	
+	public Validate(ScoreDirector scoreDirector) {
+		this.scoreDirector = scoreDirector;
+		this.score = this.scoreDirector.calculateScore();
+	}
+	
 	/*
 	 * Returns list of all broken constraints for a given solution. (e.g.[[ruleId,constraintType,lessonId,lessonId], ...])
 	 */
