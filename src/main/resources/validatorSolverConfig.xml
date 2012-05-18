@@ -9,17 +9,6 @@
 		<scoreDrl>/scheduleScoreRules.drl</scoreDrl>
 	</scoreDirectorFactory>
   
-	<termination>
-<!-- 		<terminationCompositionStyle>OR</terminationCompositionStyle> -->
-<!--         <maximumStepCount>0</maximumStepCount> -->
-        <scoreAttained>0hard/0soft</scoreAttained>
-	</termination>
-
-<!-- 	<constructionHeuristic> -->
-<!-- 		<constructionHeuristicType>FIRST_FIT_DECREASING</constructionHeuristicType> -->
-<!-- 		<constructionHeuristicPickEarlyType>FIRST_LAST_STEP_SCORE_EQUAL_OR_IMPROVING</constructionHeuristicPickEarlyType> -->
-<!-- 	</constructionHeuristic> -->
-
 	<localSearch>
 		<selector>
 			<selector>

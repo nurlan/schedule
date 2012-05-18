@@ -27,14 +27,14 @@
 	</repositories>
 
 	<groupId>kz.bee.drools.planner</groupId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.2.1</version>
 
 	<dependencies>
 		<!-- Internal dependencies -->
 		<dependency>
 			<groupId>org.drools.planner</groupId>
 			<artifactId>drools-planner-core</artifactId>
-			<version>5.4.0.CR1</version>
+			<version>5.4.0.Final</version>
 		</dependency>
 		<!-- Commons -->
 		<dependency>

@@ -16,14 +16,14 @@ public class LessonSwapMoveFactory extends CachedMoveFactory {
 
     public List<Move> createCachedMoveList(Solution solution) {
         Schedule schedule = (Schedule) solution;
-        List<Lesson> lectureList = schedule.getLessonList();
+        List<Lesson> lessonList = schedule.getLessonList();
         List<Move> moveList = new ArrayList<Move>();
-        for (ListIterator<Lesson> leftIt = lectureList.listIterator(); leftIt.hasNext();) {
-            Lesson leftLecture = leftIt.next();
-            for (ListIterator<Lesson> rightIt = lectureList.listIterator(leftIt.nextIndex()); rightIt.hasNext();) {
-                Lesson rightLecture = rightIt.next();
-                if (!leftLecture.getCourse().equals(rightLecture.getCourse())) { //TODO Semi-locked feature should be implemented here
-                    moveList.add(new LessonSwapMove(leftLecture, rightLecture));
+        for (ListIterator<Lesson> leftIt = lessonList.listIterator(); leftIt.hasNext();) {
+            Lesson leftLesson = leftIt.next();
+            for (ListIterator<Lesson> rightIt = lessonList.listIterator(leftIt.nextIndex()); rightIt.hasNext();) {
+                Lesson rightLesson = rightIt.next();
+                if (!leftLesson.getCourse().equals(rightLesson.getCourse()) && !leftLesson.isPinned() && !rightLesson.isPinned()) { 
+                    moveList.add(new LessonSwapMove(leftLesson, rightLesson));
                 }
             }
         }

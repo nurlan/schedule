@@ -128,6 +128,7 @@ rule "lessonsWithSameTeacherInSamePeriod"
 		$lesson1 : Lesson($id : id, $period : period, $teacher : teacher)
 		$lesson2 : Lesson(id != $id, period == $period, teacher == $teacher)
 	then
+		//System.out.println("then lessonsWithSameTeacherInSamePeriod");
 		insertLogical(new IntConstraintOccurrence("lessonsWithSameTeacherInSamePeriod",
 							ConstraintType.NEGATIVE_HARD, 1, 
 							$lesson1, $lesson2));
@@ -196,11 +197,63 @@ rule "repeatedLessonsInSameDayInSequentialOrder"
 		School( type == "School" )
 		$lesson1 : Lesson($id : id, period != null, $period1 : period, $order1 : period.time.order, $course : course ) 
 		$lesson2 : Lesson(id != $id, period != null, period.day == $period1.day, course == $course, $order2 : period.time.order)
-		eval( ($order1 - $order2 == 1) || ($order1 - $order2 == -1))
+		eval( ($order1 - $order2 != 1) || ($order1 - $order2 != -1))
 	then
 		insertLogical(new IntConstraintOccurrence("repeatedLessonsInSameDayInSequentialOrder", 
-							ConstraintType.POSITIVE, 10,
+							ConstraintType.NEGATIVE_SOFT, 2,
 							$lesson1, $lesson2));
+end
+
+//#
+// 333. При составлении расписания уроков должны учитывать динамику умственной 
+// работоспособности учащихся в течение дня и недели и используют таблицу 
+// ранжирования предметов по трудности (в баллах) в соответствии с приложением 
+// 17 к настоящим Санитарным правилам. 
+//#
+rule "metalPerformanceDuringDay1"
+	when
+		School( type == "School" )
+		$lesson1 : Lesson(period != null, priority > 6, period.time.order > 5, $timeOrder : period.time.order, $priority : priority)
+	then
+		insertLogical(new IntConstraintOccurrence("metalPerformanceDuringDay1", 
+							ConstraintType.NEGATIVE_SOFT, $priority,
+							$lesson1,$timeOrder));
+end
+rule "metalPerformanceDuringDay2"
+	when
+		School( type == "School" )
+		$lesson1 : Lesson(period != null, priority <= 6, period.time.order < 5)
+	then
+		insertLogical(new IntConstraintOccurrence("metalPerformanceDuringDay2", 
+							ConstraintType.NEGATIVE_SOFT, 1,
+							$lesson1));
+end
+
+//#
+// 334. Учебная нагрузка для учащихся старших классов в течение недели распределяется так, 
+// чтобы наибольший ее объем приходился на вторник или среду; для учащихся младших и средних 
+// классов на вторник и четверг. В эти дни в школьное расписание включают наиболее трудные или 
+// средние и легкие по трудности предметы, но в большем количестве, чем в остальные дни. 
+// В среду предусматривают облегченный день. 
+// Наименьшее число баллов за день должны быть на понедельник и субботу. 
+//#
+rule "metalPerformanceDuringWeek1"
+	when
+		School( type == "School" )
+		$lesson1 : Lesson(period != null, course.clazz.level > 8, priority > 7, period.day.value in (1,6))
+	then
+		insertLogical(new IntConstraintOccurrence("metalPerformanceDuringWeek1", 
+							ConstraintType.NEGATIVE_SOFT, 5,
+							$lesson1));
+end
+rule "metalPerformanceDuringWeek2"
+	when
+		School( type == "School" )
+		$lesson1 : Lesson(period != null, course.clazz.level < 9, priority > 7, period.day.value in (1,3,6))
+	then
+		insertLogical(new IntConstraintOccurrence("metalPerformanceDuringWeek2", 
+							ConstraintType.NEGATIVE_SOFT, 5,
+							$lesson1));
 end
 
 // ############################################################################
@@ -223,10 +276,14 @@ end
 rule "softConstraintsBroken"
         salience -1 // Do the other rules first (optional, for performance)
     when
-        $softTotal : Number() from accumulate(
+    	$negSoftTotal : Number() from accumulate(
             IntConstraintOccurrence(constraintType == ConstraintType.NEGATIVE_SOFT, $weight : weight),
             sum($weight) // Vote for http://jira.jboss.com/jira/browse/JBRULES-1075
         )
+        $posTotal : Number() from accumulate(
+            IntConstraintOccurrence(constraintType == ConstraintType.POSITIVE, $weight : weight),
+            sum($weight) // Vote for http://jira.jboss.com/jira/browse/JBRULES-1075
+        )
     then
-        scoreHolder.setSoftConstraintsBroken($softTotal.intValue());
+        scoreHolder.setSoftConstraintsBroken($negSoftTotal.intValue()-$posTotal.intValue());
 end

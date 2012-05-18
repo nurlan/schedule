@@ -31,8 +31,10 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 	private Course course;
 	private Teacher teacher;
 	private String lessonType;
+	private int priority;
 	private int timeValue;
 	private boolean pinned;
+	private String businessKey;
 	
 	private Period period;
 	private Room room;
@@ -92,6 +94,14 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 		this.lessonType = lessonType;
 	}
 
+	public int getPriority() {
+		return priority;
+	}
+
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
+
 	public int getTimeValue() {
 		return timeValue;
 	}
@@ -108,6 +118,16 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 		this.pinned = pinned;
 	}
 
+	
+	public String getBusinessKey() {
+		return businessKey;
+	}
+
+	public void setBusinessKey(String businessKey) {
+		this.businessKey = businessKey;
+	}
+
+	
 	public Lesson clone() {
 		Lesson lesson = new Lesson();
 		
@@ -115,8 +135,10 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 		lesson.setCourse(course);
 		lesson.setTeacher(teacher);
 		lesson.setLessonType(lessonType);
+		lesson.setPriority(priority);
 		lesson.setTimeValue(timeValue);
 		lesson.setPinned(pinned);
+		lesson.setBusinessKey(businessKey);
 		lesson.setPeriod(period);
 		lesson.setRoom(room);
 		
@@ -129,8 +151,10 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 			.append(course, other.course)
 			.append(teacher, other.teacher)
 			.append(lessonType, other.lessonType)
+			.append(priority, other.priority)
 			.append(timeValue, other.timeValue)
 			.append(pinned, other.pinned)
+			.append(businessKey, other.businessKey)
 			.append(period, other.period)
 			.append(room, other.room)
 			.toComparison();
@@ -152,8 +176,10 @@ public class Lesson implements Serializable, Comparable<Lesson>{
                     .append(course, other.course)
                     .append(teacher, other.teacher)
                     .append(lessonType, other.lessonType)
+                    .append(priority, other.priority)
                     .append(timeValue, other.timeValue)
                     .append(pinned, other.pinned)
+                    .append(businessKey, other.businessKey)
 					.append(period, other.period)
 					.append(room, other.room)
                     .isEquals();
@@ -173,8 +199,10 @@ public class Lesson implements Serializable, Comparable<Lesson>{
                 .append(course)
                 .append(teacher)
                 .append(lessonType)
+                .append(priority)
                 .append(timeValue)
                 .append(pinned)
+                .append(businessKey)
 				.append(period)
 				.append(room)
                 .toHashCode();
@@ -183,9 +211,10 @@ public class Lesson implements Serializable, Comparable<Lesson>{
 	@Override
 	public String toString() {
 		return "Lesson [id=" + id + ", course=" + course + ", teacher="
-				+ teacher + ", lessonType=" + lessonType + ", timeValue="
-				+ timeValue + ", pinned=" + pinned + ", period=" + period
+				+ teacher + ", lessonType=" + lessonType + ", priority="
+				+ priority + ", timeValue=" + timeValue + ", pinned=" + pinned
+				+ ", businessKey=" + businessKey + ", period=" + period
 				+ ", room=" + room + "]";
 	}
-    
+
 }

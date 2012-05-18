@@ -117,8 +117,25 @@ public class ScoreDetail implements Comparable<ScoreDetail> {
         	object[0] = constraintOccurrence.getRuleId();
         	object[1] = constraintOccurrence.getConstraintType().toString();
         	object[2] = ((Lesson)((Object[])constraintOccurrence.getCauses())[0]).getId();
-        	object[3] = ((Lesson)((Object[])constraintOccurrence.getCauses())[1]).getId();
+        	object[3] = ((constraintOccurrence.getCauses().length>1)?((Lesson)((Object[])constraintOccurrence.getCauses())[1]).getId():-1);
         	list.add(object);
+        }
+        return list;
+    }
+    
+    public List<Object[]> buildHardConstraintOccurrenceList() {
+        List<ConstraintOccurrence> constraintOccurrenceList = new ArrayList(constraintOccurrenceSet);
+        Collections.sort(constraintOccurrenceList);
+        List<Object[]> list = new ArrayList<Object[]>();
+        for (ConstraintOccurrence constraintOccurrence : constraintOccurrenceList) {
+        	if(constraintOccurrence.getConstraintType().equals("NEGATIVE_HARD")) {
+	        	Object[] object = new Object[4];
+	        	object[0] = constraintOccurrence.getRuleId();
+	        	object[1] = constraintOccurrence.getConstraintType().toString();
+	        	object[2] = ((Lesson)((Object[])constraintOccurrence.getCauses())[0]).getId();
+	        	object[3] = ((constraintOccurrence.getCauses().length>1)?((Lesson)((Object[])constraintOccurrence.getCauses())[1]).getId():-1);
+	        	list.add(object);
+        	}
         }
         return list;
     }

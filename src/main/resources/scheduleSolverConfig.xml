@@ -10,9 +10,9 @@
 	</scoreDirectorFactory>
   
 	<termination>
-<!-- 		<terminationCompositionStyle>OR</terminationCompositionStyle> -->
-<!--         <maximumStepCount>1550</maximumStepCount> -->
-        <scoreAttained>-12hard/0soft</scoreAttained>
+		<terminationCompositionStyle>OR</terminationCompositionStyle>
+        <scoreAttained>-8hard/0soft</scoreAttained>
+        <maximumMinutesSpend>15</maximumMinutesSpend>
 	</termination>
 
 	<constructionHeuristic>

@@ -35,16 +35,17 @@ public class Validate {
 	public Validate(ScoreDirector scoreDirector) {
 		this.scoreDirector = scoreDirector;
 		this.score = this.scoreDirector.calculateScore();
+		System.out.println("score:" + score);
 	}
 	
 	/*
-	 * Returns list of all broken constraints for a given solution. (e.g.[[ruleId,constraintType,lessonId,lessonId], ...])
+	 * Returns list of all broken constraints(hard) for a given solution. (e.g.[[ruleId,constraintType,lessonId,lessonId], ...])
 	 */
 	public List<Object[]> validate() {
 		List<Object[]> brokenConstraintList = new ArrayList<Object[]>();
 		try {
 			for(ScoreDetail sd : getScoreDetailList()) {
-				brokenConstraintList.addAll(sd.buildConstraintOccurrenceList());
+				brokenConstraintList.addAll(sd.buildHardConstraintOccurrenceList());
 			}
 		}
 		catch(Exception e) {

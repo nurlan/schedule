@@ -4,10 +4,8 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -26,7 +24,6 @@ import kz.bee.drools.planner.schedule.domain.Teacher;
 import kz.bee.drools.planner.schedule.domain.Time;
 import kz.bee.drools.planner.schedule.domain.UnavailablePeriodConstraint;
 import kz.bee.drools.planner.schedule.solution.Schedule;
-import kz.bee.drools.planner.schedule.validate.ScoreDetail;
 import kz.bee.drools.planner.schedule.validate.Validate;
 import kz.bee.kudos.course.CoursePlanItem;
 import kz.bee.kudos.lesson.Lesson.Status;
@@ -34,29 +31,24 @@ import kz.bee.kudos.lesson.RingGroup;
 import kz.bee.kudos.lesson.RingOrder;
 import kz.bee.kudos.ou.Location;
 import kz.bee.kudos.ou.School;
+import kz.bee.wx.core.Properties;
 import kz.bee.wx.security.Group;
-import kz.bee.wx.security.Role;
 import kz.bee.wx.security.User;
 
-import org.drools.ClassObjectFilter;
-import org.drools.WorkingMemory;
 import org.drools.planner.config.SolverFactory;
 import org.drools.planner.config.XmlSolverFactory;
 import org.drools.planner.core.Solver;
-import org.drools.planner.core.bestsolution.BestSolutionRecaller;
 import org.drools.planner.core.event.BestSolutionChangedEvent;
 import org.drools.planner.core.event.SolverEventListener;
-import org.drools.planner.core.score.Score;
-import org.drools.planner.core.score.constraint.ConstraintOccurrence;
 import org.drools.planner.core.score.director.ScoreDirector;
-import org.drools.planner.core.score.director.drools.DroolsScoreDirector;
-import org.drools.planner.core.solver.DefaultSolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ScheduleMainJPA {
 
 	public static final String SOLVER_CONFIG = "/scheduleSolverConfig.xml";
+//	public static final String VALIDATOR_CONFIG = "/validatorSolverConfig.xml";
+	
 	public static long prevTime = 0;
 	protected final transient Logger logger = LoggerFactory.getLogger(getClass());
 	 
@@ -66,6 +58,7 @@ public class ScheduleMainJPA {
 	private Map<Long,Course> courseMap;
 	private Map<String,Teacher> teacherMap;
 	private Map<Long, Lesson> lessonMap;
+	private Map<Long,Map<String,Integer>> lessonCountMap;
 	
 	private List<kz.bee.kudos.course.Course> kudosCourseList;
 	
@@ -75,6 +68,7 @@ public class ScheduleMainJPA {
 	
 	private void init() {
 		SolverFactory solverFactory = new XmlSolverFactory(SOLVER_CONFIG);
+//		SolverFactory solverFactory = new XmlSolverFactory(VALIDATOR_CONFIG);
 		solver = solverFactory.buildSolver();
 		
 		scoreDirector = solver.getScoreDirectorFactory().buildScoreDirector();
@@ -228,6 +222,7 @@ public class ScheduleMainJPA {
 			
 			timestamp("t13:");
 			lessonMap = new HashMap<Long, Lesson>();
+			lessonCountMap = new HashMap<Long,Map<String,Integer>>();
 			for(kz.bee.kudos.lesson.Lesson lesson : kudosLessonList) {
 				Lesson l = new Lesson();
 				l.setId(lesson.getId());
@@ -242,9 +237,33 @@ public class ScheduleMainJPA {
 					l.setRoom(roomMap.get(location.getId()));
 				}
 				l.setPinned(true);
+				l.setLessonType(lesson.getType());
+				l.setBusinessKey(lesson.getId().toString());
 				
 				lessonList.add(l);
 				lessonMap.put(lesson.getId(), l);
+				
+				if(lessonCountMap.containsKey(lesson.getCourse().getId())) {
+					Map<String,Integer> typeMap = lessonCountMap.get(lesson.getCourse().getId());
+					if(typeMap.containsKey(lesson.getType())) {
+						Integer lessonCount = typeMap.get(lesson.getType());
+						Integer lessonHours = typeMap.get(lesson.getType().concat("Hours"));
+						lessonCount = lessonCount + 1;
+						lessonHours = lessonHours + lesson.getHours().intValue();
+						typeMap.put(lesson.getType(),lessonCount);
+						typeMap.put(lesson.getType().concat("Hours"),lessonHours);
+					}
+					else {
+						typeMap.put(lesson.getType(), 1);
+						typeMap.put(lesson.getType().concat("Hours"),lesson.getHours().intValue());
+					}
+				}
+				else {
+					Map<String,Integer> typeMap = new HashMap<String,Integer>();
+					typeMap.put(lesson.getType(),1);
+					typeMap.put(lesson.getType().concat("Hours"),lesson.getHours().intValue());
+					lessonCountMap.put(lesson.getCourse().getId(),typeMap);
+				}
 			}
 			
 			timestamp("t14:");
@@ -279,24 +298,29 @@ public class ScheduleMainJPA {
 	
 	private void start() {
 		try {
-			System.out.println("Start solving ...");
-			
+			logger.info("Start solving ...");
+
+//			print((Schedule) solver.getBestSolution());
 			this.solver.solve();
 			
 			Schedule schedule = (Schedule) solver.getBestSolution();
 			this.scoreDirector.setWorkingSolution(schedule);
 			this.scoreDirector.calculateScore();
 			
-			System.out.println( "Score: " + schedule.getScore() + ", Time: " + this.solver.getTimeMillisSpend() );
-	        print(schedule);
+			logger.info( "Score: " + schedule.getScore() + ", Time: " + this.solver.getTimeMillisSpend() );
+	        //print(schedule);
 	        
-	        System.out.println("End solving ...");
+			logger.info("End solving ...");
 	        
-//	    	System.out.println( "getScoreDetailList size:" + getScoreDetailList().size());
-//			System.out.println( "Broken constrains list:" );
-//			
+//			List<Object[]> brokenConstraintList = new ArrayList<Object[]>();
+//			Validate v = new Validate(scoreDirector);
+//			brokenConstraintList = v.validate();
+//			for(Object[] objectArray : brokenConstraintList) {
+//				System.out.println(objectArray[0] + " : " + objectArray[1] + " : " + objectArray[2] + " <=> " + objectArray[3]);
+//			}
+			
 //			for(ScoreDetail sd : getScoreDetailList()) {
-//				System.out.println(sd);
+//				System.out.println(sd);	
 //				System.out.println("=>"+sd.buildConstraintOccurrenceListText());
 ////				System.out.println("%>"+sd.buildConstraintOccurrenceList());
 //			}
@@ -306,32 +330,42 @@ public class ScheduleMainJPA {
 			
 			em.getTransaction().begin();
 			for(Lesson lesson : schedule.getLessonList()) {
-				kz.bee.kudos.lesson.Lesson kudosLesson = new kz.bee.kudos.lesson.Lesson();
-				Calendar cl = Calendar.getInstance();
-				cl.set(Calendar.DAY_OF_WEEK,lesson.getPeriod().getDay().getValue()+1);
-				RingOrder ring = em.find(RingOrder.class, lesson.getPeriod().getTime().getId());
-				StringTokenizer st = new StringTokenizer(ring.getBegin());
-				cl.set(Calendar.HOUR_OF_DAY, Integer.parseInt(st.nextToken(":")));
-				cl.set(Calendar.MINUTE, Integer.parseInt(st.nextToken(":")));
-				kudosLesson.setBegin(cl.getTime());
-				
-				st = new StringTokenizer(ring.getEnd());
-				cl.set(Calendar.HOUR_OF_DAY, Integer.parseInt(st.nextToken(":")));
-				cl.set(Calendar.MINUTE, Integer.parseInt(st.nextToken(":")));
-				kudosLesson.setEnd(cl.getTime());
-				kudosLesson.setCourse(em.find(kz.bee.kudos.course.Course.class,lesson.getCourse().getId()));
-				kudosLesson.setRing(ring);
-				kudosLesson.setOrder(lesson.getPeriod().getTime().getOrder());
-				kudosLesson.setStatus(Status.PLANNED);
-				kudosLesson.setLocation(em.find(Location.class, lesson.getRoom().getId()));
-				kudosLesson.setType(lesson.getLessonType());
-				kudosLesson.setTeacher(em.find(User.class, lesson.getTeacher().getId()));
-				
-				em.persist(kudosLesson);
+				if (!lesson.isPinned()) {
+					kz.bee.kudos.lesson.Lesson kudosLesson = new kz.bee.kudos.lesson.Lesson();
+					
+					if(lesson.getBusinessKey() != null && !lesson.getBusinessKey().isEmpty()) {
+						kudosLesson = em.find(kz.bee.kudos.lesson.Lesson.class, Long.parseLong(lesson.getBusinessKey()));
+					}
+					
+					Calendar cl = Calendar.getInstance();
+					cl.set(Calendar.DAY_OF_WEEK, lesson.getPeriod().getDay().getValue() + 1);
+					RingOrder ring = em.find(RingOrder.class, lesson.getPeriod().getTime().getId());
+					StringTokenizer st = new StringTokenizer(ring.getBegin());
+					cl.set(Calendar.HOUR_OF_DAY, Integer.parseInt(st.nextToken(":")));
+					cl.set(Calendar.MINUTE, Integer.parseInt(st.nextToken(":")));
+					kudosLesson.setBegin(cl.getTime());
+
+					st = new StringTokenizer(ring.getEnd());
+					cl.set(Calendar.HOUR_OF_DAY, Integer.parseInt(st.nextToken(":")));
+					cl.set(Calendar.MINUTE, Integer.parseInt(st.nextToken(":")));
+					kudosLesson.setEnd(cl.getTime());
+					kudosLesson.setCourse(em.find( kz.bee.kudos.course.Course.class, lesson.getCourse().getId()));
+					kudosLesson.setRing(ring);
+					kudosLesson.setOrder(lesson.getPeriod().getTime().getOrder());
+					kudosLesson.setStatus(Status.PLANNED);
+					kudosLesson.setLocation(em.find(Location.class, lesson.getRoom().getId()));
+					kudosLesson.setType(lesson.getLessonType());
+					System.out.println("out lesson:"+lesson);
+					kudosLesson.setTeacher(em.find(User.class, lesson.getTeacher().getId()));
+					
+					if(lesson.getBusinessKey() == null || lesson.getBusinessKey().isEmpty()) {
+						em.persist(kudosLesson);
+					}
+				}
 			}
 			
 			em.getTransaction().commit();
-			System.out.println("THE END");
+			logger.info("THE END");
 			
 		}
 		catch(Exception e) {
@@ -430,9 +464,22 @@ public class ScheduleMainJPA {
 			
 			em.getTransaction().begin();
 			
+			List<Long> pinnedLessonList = new ArrayList<Long>();
+			pinnedLessonList.add(2505687L);
+			pinnedLessonList.add(2505690L);
+			
+			Properties properties = em.getReference(Properties.class, "SUBJECT-PRIORITY");
+			
+			Map<String, String> lessonPriorityMap = new HashMap<String, String>();
+			
+			if(properties != null) {
+				lessonPriorityMap = properties.getEntries();
+			}
+			
 			School school = em.find(School.class, schoolName);
 			RingGroup ringGroup = em.find(RingGroup.class, ringGroupId);
 			kz.bee.kudos.period.Period period = em.find(kz.bee.kudos.period.Period.class, periodId);
+			
 			
 			List<kz.bee.kudos.ou.Class> kudosClassList = em.createQuery("select c from kz.bee.kudos.ou.Class c where c.parent.parent = :group and c.period = :period and c.level in (5,6,7,8)")
 					.setParameter("group", em.find(Group.class, schoolName))
@@ -447,6 +494,25 @@ public class ScheduleMainJPA {
 											.setParameter("ringGroup", ringGroup)
 											.getResultList();
 			timestamp("t ring orders:");
+//			List<kz.bee.kudos.lesson.Lesson> kudosLessonList = em.createQuery("select " +
+//																					"l " +
+//																			"from " +
+//																				"kz.bee.kudos.lesson.Lesson l " +
+//																			"where " +
+//																				"l.ring in (:ringOrders) " +
+//																			"and " +
+//																				"l.course in (:courses)" 
+//																			)
+//																			.setParameter("ringOrders", ringOrderList)
+//																			.setParameter("courses", kudosCourseList)
+//																			.getResultList();
+			Calendar calendar = Calendar.getInstance();
+			calendar.set(Calendar.WEEK_OF_YEAR, 20);
+			calendar.set(Calendar.DAY_OF_WEEK,1);
+			Date beginDate = calendar.getTime();
+			calendar.set(Calendar.DAY_OF_WEEK,7);
+			Date endDate = calendar.getTime();
+			
 			List<kz.bee.kudos.lesson.Lesson> kudosLessonList = em.createQuery("select " +
 																					"l " +
 																			"from " +
@@ -454,10 +520,16 @@ public class ScheduleMainJPA {
 																			"where " +
 																				"l.ring in (:ringOrders) " +
 																			"and " +
-																				"l.course in (:courses)" 
+																				"l.course in (:courses) " +
+																			"and " +
+																				"l.begin >= :begin " +
+																			"and " +
+																				"l.end <= :end"
 																			)
 																			.setParameter("ringOrders", ringOrderList)
 																			.setParameter("courses", kudosCourseList)
+																			.setParameter("begin", beginDate)
+																			.setParameter("end", endDate)
 																			.getResultList();
 			timestamp("t lessons:");
 			System.out.println("Kudos Lesson count: " + kudosLessonList.size());
@@ -563,55 +635,140 @@ public class ScheduleMainJPA {
 				}
 			}
 			
+			Long j = 1L;
 			timestamp("t13:");
 			Map<Long, Lesson> lessonMap = new HashMap<Long, Lesson>();
+//			for(kz.bee.kudos.lesson.Lesson lesson : kudosLessonList) {
+//				Lesson l = new Lesson();
+//				l.setId(j++);
+//				l.setCourse(courseMap.get(lesson.getCourse().getId()));
+//				l.setTeacher(teacherMap.get(lesson.getTeacher().getName()));
+//				Period p = periodMap.get(Long.parseLong(lesson.getBegin().getDay()+""+lesson.getRing().getId()));
+//				if( p != null ) {
+//					l.setPeriod(p);
+//				}
+//				Location location =  lesson.getLocation();
+//				if( location != null ) {
+//					l.setRoom(roomMap.get(location.getId()));
+//				}
+//				l.setPinned(true);
+//				l.setBusinessKey(lesson.getId().toString());
+//				
+//				lessonList.add(l);
+//				lessonMap.put(lesson.getId(), l);
+//			}
+			lessonMap = new HashMap<Long, Lesson>();
+			lessonCountMap = new HashMap<Long,Map<String,Integer>>();
 			for(kz.bee.kudos.lesson.Lesson lesson : kudosLessonList) {
 				Lesson l = new Lesson();
-				l.setId(lesson.getId());
+				l.setId(j++);
 				l.setCourse(courseMap.get(lesson.getCourse().getId()));
 				l.setTeacher(teacherMap.get(lesson.getTeacher().getName()));
-				Period p = periodMap.get(Long.parseLong(lesson.getBegin().getDay()+""+lesson.getRing().getId()));
-				if( p != null ) {
-					l.setPeriod(p);
-				}
 				Location location =  lesson.getLocation();
 				if( location != null ) {
 					l.setRoom(roomMap.get(location.getId()));
+					
+					Period p = periodMap.get(Long.parseLong(lesson.getBegin().getDay()+""+lesson.getRing().getId()));
+					
+					if( p != null ) {
+						l.setPeriod(p);
+					}
+					
+					if(pinnedLessonList.contains(lesson.getId())) {
+						l.setPinned(true);
+					}
 				}
-				l.setPinned(true);
+				
+				
+				l.setLessonType(lesson.getType());
+				l.setPriority(Integer.parseInt(lessonPriorityMap.get(lesson.getCourse().getSubject())));
+				l.setBusinessKey(lesson.getId().toString());
 				
 				lessonList.add(l);
 				lessonMap.put(lesson.getId(), l);
+				
+				if(lessonCountMap.containsKey(lesson.getCourse().getId())) {
+					Map<String,Integer> typeMap = lessonCountMap.get(lesson.getCourse().getId());
+					if(typeMap.containsKey(lesson.getType())) {
+						Integer lessonCount = typeMap.get(lesson.getType());
+						Integer lessonHours = typeMap.get(lesson.getType().concat("Hours"));
+						lessonCount = lessonCount + 1;
+						lessonHours = lessonHours + lesson.getHours().intValue();
+						typeMap.put(lesson.getType(),lessonCount);
+						typeMap.put(lesson.getType().concat("Hours"),lessonHours);
+					}
+					else {
+						typeMap.put(lesson.getType(), 1);
+						typeMap.put(lesson.getType().concat("Hours"),lesson.getHours().intValue());
+					}
+				}
+				else {
+					Map<String,Integer> typeMap = new HashMap<String,Integer>();
+					typeMap.put(lesson.getType(),1);
+					typeMap.put(lesson.getType().concat("Hours"),lesson.getHours().intValue());
+					lessonCountMap.put(lesson.getCourse().getId(),typeMap);
+				}
 			}
 			
 			timestamp("t14:");
-			Long j = 0L;
+//			for( CoursePlanItem cpi : kudosCoursePlanItemList ) {
+//				int reminder = cpi.getHours() % cpi.getCount();
+//				
+//				for(int i = 0; i < cpi.getCount(); i++) {
+//					Lesson lesson = new Lesson();
+////					while(lessonMap.containsKey(j)) {
+////						j++;
+////					}
+//					lesson.setId(j++);
+//					lesson.setCourse(courseMap.get(cpi.getCourse().getId()));
+//					lesson.setTeacher(teacherMap.get(cpi.getTeacher().getName()));
+//					lesson.setLessonType(cpi.getLessonType());
+//					lesson.setTimeValue((cpi.getHours() / cpi.getCount())+((reminder>0)?1:0));
+//					lesson.setPinned(false);
+////					lesson.setPeriod(periodList.get(k % periodList.size()));
+////					lesson.setRoom(roomList.get((k / periodList.size()) % roomList.size()));
+//					lessonList.add(lesson);
+//					
+//					if(reminder > 0) {
+//						reminder--;
+//					}
+//				}
+//			}
+			
+			int counter = 0;
+			System.out.println("Before Lessons size:" + lessonList.size());
 			for( CoursePlanItem cpi : kudosCoursePlanItemList ) {
-				int reminder = cpi.getHours() % cpi.getCount();
-				
-				for(int i = 0; i < cpi.getCount(); i++) {
-					Lesson lesson = new Lesson();
-					while(lessonMap.containsKey(j)) {
-						j++;
+				int count = cpi.getCount();
+				int hours = cpi.getHours();
+				if(lessonCountMap.containsKey(cpi.getCourse().getId())) {
+					if(lessonCountMap.get(cpi.getCourse().getId()).containsKey(cpi.getLessonType())) {
+						count = count - lessonCountMap.get(cpi.getCourse().getId()).get(cpi.getLessonType()).intValue();
+						hours = hours - lessonCountMap.get(cpi.getCourse().getId()).get(cpi.getLessonType()+"Hours").intValue();
 					}
+				}
+				
+				int reminder = (count!=0)?(hours % count):0;
+				
+				for(int i = 0; i < count; i++) {
+					Lesson lesson = new Lesson();
 					lesson.setId(j++);
 					lesson.setCourse(courseMap.get(cpi.getCourse().getId()));
 					lesson.setTeacher(teacherMap.get(cpi.getTeacher().getName()));
 					lesson.setLessonType(cpi.getLessonType());
-					lesson.setTimeValue((cpi.getHours() / cpi.getCount())+((reminder>0)?1:0));
+					lesson.setPriority(Integer.parseInt(lessonPriorityMap.get(cpi.getCourse().getSubject())));
+					lesson.setTimeValue((hours / count)+((reminder>0)?1:0));
 					lesson.setPinned(false);
-//					lesson.setPeriod(periodList.get(k % periodList.size()));
-//					lesson.setRoom(roomList.get((k / periodList.size()) % roomList.size()));
 					lessonList.add(lesson);
 					
 					if(reminder > 0) {
 						reminder--;
 					}
+					counter++;
 				}
 			}
-			
-			System.out.println("Lessons size:" + j);
-			
+			System.out.println("Count Lessons size:" + counter);
+			System.out.println("After Lessons size:" + lessonList.size());
+
 			em.getTransaction().commit();
 			
 			em.close();
@@ -644,6 +801,7 @@ public class ScheduleMainJPA {
 	public void setPlanningProblem3(String schoolName, Long ringGroupId, Long periodId) {
 		try {
 			createSolution(schoolName, ringGroupId, periodId);
+			System.out.println(lessonCountMap);
 			Schedule schedule = (Schedule) this.solver.getBestSolution();
 			
 			List<Lesson> lessonList = schedule.getLessonList();
@@ -668,11 +826,22 @@ public class ScheduleMainJPA {
 			}
 			timestamp("t7.1:");
 			
-			Long j = 0L;
-			for( CoursePlanItem cpi : kudosCoursePlanItemList ) { //TODO lesson count --
-				int reminder = cpi.getHours() % cpi.getCount();
+			Long j = 1L;
+			int counter = 0;
+			System.out.println("Before Lessons size:" + lessonList.size());
+			for( CoursePlanItem cpi : kudosCoursePlanItemList ) {
+				int count = cpi.getCount();
+				int hours = cpi.getHours();
+				if(lessonCountMap.containsKey(cpi.getCourse().getId())) {
+					if(lessonCountMap.get(cpi.getCourse().getId()).containsKey(cpi.getLessonType())) {
+						count = count - lessonCountMap.get(cpi.getCourse().getId()).get(cpi.getLessonType()).intValue();
+						hours = hours - lessonCountMap.get(cpi.getCourse().getId()).get(cpi.getLessonType()+"Hours").intValue();
+					}
+				}
 				
-				for(int i = 0; i < cpi.getCount(); i++) {
+				int reminder = (count!=0)?(hours % count):0;
+				
+				for(int i = 0; i < count; i++) {
 					Lesson lesson = new Lesson();
 					while(lessonMap.containsKey(j)) {
 						j++;
@@ -681,17 +850,18 @@ public class ScheduleMainJPA {
 					lesson.setCourse(courseMap.get(cpi.getCourse().getId()));
 					lesson.setTeacher(teacherMap.get(cpi.getTeacher().getName()));
 					lesson.setLessonType(cpi.getLessonType());
-					lesson.setTimeValue((cpi.getHours() / cpi.getCount())+((reminder>0)?1:0));
+					lesson.setTimeValue((hours / count)+((reminder>0)?1:0));
 					lesson.setPinned(false);
 					lessonList.add(lesson);
 					
 					if(reminder > 0) {
 						reminder--;
 					}
+					counter++;
 				}
 			}
-			
-			System.out.println("Lessons size:" + j);
+			System.out.println("Count Lessons size:" + counter);
+			System.out.println("After Lessons size:" + lessonList.size());
 			
 			em.getTransaction().commit();
 			
@@ -721,20 +891,40 @@ public class ScheduleMainJPA {
 			RingGroup ringGroup = em.find(RingGroup.class, ringGroupId);
 			kz.bee.kudos.period.Period period = em.find(kz.bee.kudos.period.Period.class, periodId);
 
-//			timestamp("t start:");
+			
+			timestamp("t start:");
 			List<kz.bee.kudos.ou.Class> kudosClassList = em.createQuery("select c from kz.bee.kudos.ou.Class c where c.parent.parent = :group and c.period = :period and c.level in (5,6,7,8)")
 					.setParameter("group", em.find(Group.class, schoolName))
 					.setParameter("period", period)
 					.getResultList();
-//			timestamp("t get classes:");
+			timestamp("t get classes:");
 			List<kz.bee.kudos.course.Course> kudosCourseList = em.createQuery("select c from kz.bee.kudos.course.Course c where c.clazz in (:kudosClasses) and c.teacher is not null")
 					.setParameter("kudosClasses", kudosClassList)
 					.getResultList();
-//			timestamp("t courses:");
+			timestamp("t courses:");
 			List<RingOrder> ringOrderList = em.createQuery("select r from RingOrder r where r.group = :ringGroup order by r.order asc")
 											.setParameter("ringGroup", ringGroup)
 											.getResultList();
-//			timestamp("t ring orders:");
+			timestamp("t ring orders:");
+//			List<kz.bee.kudos.lesson.Lesson> kudosLessonList = em.createQuery("select " +
+//																					"l " +
+//																			"from " +
+//																				"kz.bee.kudos.lesson.Lesson l " +
+//																			"where " +
+//																				"l.ring in (:ringOrders) " +
+//																			"and " +
+//																				"l.course in (:courses)" 
+//																			)
+//																			.setParameter("ringOrders", ringOrderList)
+//																			.setParameter("courses", kudosCourseList)
+//																			.getResultList();
+			Calendar calendar = Calendar.getInstance();
+			calendar.set(Calendar.WEEK_OF_YEAR, 20);
+			calendar.set(Calendar.DAY_OF_WEEK,1);
+			Date beginDate = calendar.getTime();
+			calendar.set(Calendar.DAY_OF_WEEK,7);
+			Date endDate = calendar.getTime();
+			
 			List<kz.bee.kudos.lesson.Lesson> kudosLessonList = em.createQuery("select " +
 																					"l " +
 																			"from " +
@@ -742,24 +932,30 @@ public class ScheduleMainJPA {
 																			"where " +
 																				"l.ring in (:ringOrders) " +
 																			"and " +
-																				"l.course in (:courses)" 
+																				"l.course in (:courses) " +
+																			"and " +
+																				"l.begin >= :begin " +
+																			"and " +
+																				"l.end <= :end"
 																			)
 																			.setParameter("ringOrders", ringOrderList)
 																			.setParameter("courses", kudosCourseList)
+																			.setParameter("begin", beginDate)
+																			.setParameter("end", endDate)
 																			.getResultList();
-//			timestamp("t lessons:");
+			timestamp("t lessons:");
 			System.out.println("Lesson count: " + kudosLessonList.size());
 
 			List<User> kudosTeacherList = em.createQuery("select distinct c.teacher from CoursePlanItem c where c.course in (:courseList)")
 					.setParameter("courseList", kudosCourseList)
 					.getResultList();
 			
-//			timestamp("t3:");
+			timestamp("t3:");
 			List<Location> kudosRoomList = em.createQuery("select l from Location l where l.school = :school")
 											.setParameter("school", school)
 											.getResultList();
 			
-//			timestamp("t7:");
+			timestamp("t7:");
 			List<kz.bee.drools.planner.schedule.domain.School> schoolList = new ArrayList<kz.bee.drools.planner.schedule.domain.School>(); 	//0
 			List<Course> courseList = new ArrayList<Course>(); //4
 			List<Class> clazzList = new ArrayList<Class>(); //3
@@ -776,7 +972,7 @@ public class ScheduleMainJPA {
 			timetableSchool.setType(school.getType());
 			schoolList.add(timetableSchool);
 			
-//			timestamp("t8:");
+			timestamp("t8:");
 			Map<String,Teacher> teacherMap = new HashMap<String, Teacher>();
 			for(User u : kudosTeacherList) {
 				Teacher teacher = new Teacher();
@@ -786,7 +982,7 @@ public class ScheduleMainJPA {
 				teacherList.add(teacher);
 				teacherMap.put(u.getName(), teacher);
 			}
-//			timestamp("t9:");
+			timestamp("t9:");
 			Map<Long,Room> roomMap = new HashMap<Long,Room>();
 			for(Location l : kudosRoomList) {
 				Room room = new Room();
@@ -796,7 +992,7 @@ public class ScheduleMainJPA {
 				roomList.add(room);
 				roomMap.put(l.getId(),room);
 			}
-//			timestamp("t10:");
+			timestamp("t10:");
 			Map<Long,Class> classMap = new HashMap<Long, Class>();
 			for(kz.bee.kudos.ou.Class c : kudosClassList) {
 				Class clazz = new Class();
@@ -807,7 +1003,7 @@ public class ScheduleMainJPA {
 				clazzList.add(clazz);
 				classMap.put(c.getId(), clazz);
 			}
-//			timestamp("t11:");
+			timestamp("t11:");
 			Map<Long,Course> courseMap = new HashMap<Long, Course>();
 			for(kz.bee.kudos.course.Course c : kudosCourseList) {
 				Course course = new Course();
@@ -820,7 +1016,7 @@ public class ScheduleMainJPA {
 				courseList.add(course);
 				courseMap.put(c.getId(),course);
 			}
-//			timestamp("t12:");
+			timestamp("t12:");
 			for(int i = 1; i < 7; i++ ) {
 				Day d = new Day();
 				d.setId(Long.parseLong(""+i));
@@ -848,7 +1044,7 @@ public class ScheduleMainJPA {
 				}
 			}
 			
-//			timestamp("t13:");
+			timestamp("t13:");
 			for(kz.bee.kudos.lesson.Lesson lesson : kudosLessonList) {
 				Lesson l = new Lesson();
 				l.setId(lesson.getId());
@@ -879,14 +1075,18 @@ public class ScheduleMainJPA {
 			schedule.setTimeList(timeList);
 			schedule.setLessonList(lessonList);
 			schedule.setUnavailablePeriodConstraintList(unavailablePeriodConstraintList);
-//			timestamp("t14:");
-			Validate validate = new Validate(scoreDirector, schedule);
+			timestamp("t14:");
+			
+			scoreDirector.setWorkingSolution(schedule);
+//			Validate validate = new Validate(scoreDirector, schedule);
+			Validate validate = new Validate(scoreDirector);
 			brokenConstraintList = validate.validate();
-//			timestamp("t15:");
+			System.out.println("brokenConstraintList size: " + brokenConstraintList.size() );
+			timestamp("t15:");
 			for(Object[] objectArray : brokenConstraintList) {
 				System.out.println(objectArray[0] + " : " + objectArray[1] + " : " + objectArray[2] + " <=> " + objectArray[3]);
 			}
-//			timestamp("t16:");
+			timestamp("t16:");
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -926,10 +1126,10 @@ public class ScheduleMainJPA {
 		scheduleMainJPA.init();
 //		scheduleMainJPA.setPlanningProblem();
 //		scheduleMainJPA.setPlanningProblem2("EDU-A-J-S118", 328448L, 67162L);
-		
+		//'EDU-Z-ALM-PL1',207,1,
 //		scheduleMainJPA.setPlanningProblem3("EDU-A-J-S118", 328448L, 67162L);
 //		scheduleMainJPA.start();
-//		scheduleMainJPA.validate("EDU-A-J-S118", 328448L, 67162L);
-		scheduleMainJPA.validate2("EDU-A-J-S118", 328448L, 67162L);
+		scheduleMainJPA.validate("EDU-A-J-S118", 328448L, 67162L);
+//		scheduleMainJPA.validate2("EDU-A-J-S118", 328448L, 67162L);
 	}
 }

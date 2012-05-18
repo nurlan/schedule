@@ -34,7 +34,8 @@
 			<!-- Only relevant if Seam is loading the persistence unit (Java SE bootstrap) -->
 
 			<property name="hibernate.connection.driver_class" value="org.postgresql.Driver" />
-			<property name="hibernate.connection.url" value="jdbc:postgresql://localhost/slrs_29.04.12" />
+			<property name="hibernate.connection.url" value="jdbc:postgresql://localhost/lrs" />
+<!-- 			<property name="hibernate.connection.url" value="jdbc:postgresql://localhost/slrs_29.04.12" /> -->
 			<property name="hibernate.connection.username" value="postgres" />
 			<property name="hibernate.connection.password" value="postgres" />
 		</properties>
